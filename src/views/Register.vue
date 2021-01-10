@@ -24,7 +24,7 @@
         <span class="text-gray-700 font-semibold text-2xl">Password Manager</span>
       </div>
 
-      <form class="mt-4" @submit.prevent="login">
+      <form class="mt-4" @submit.prevent="handleSubmit">
         <label class="block">
           <span class="text-gray-700 text-sm">Username</span>
           <input
@@ -43,22 +43,21 @@
           />
         </label>
 
-        <div class="flex justify-between items-center mt-4">
-          <div>
-            <router-link to="/register" class="btn btn-link text-sm fontme text-indigo-700 hover:underline">Forgot your password?</router-link>
-          </div>
-
-          <div>
-            <router-link to="/register" class="btn btn-link text-sm fontme text-indigo-700 hover:underline">Register</router-link>
-          </div>
-        </div>
+        <label class="block mt-3">
+          <span class="text-gray-700 text-sm">Confirm password</span>
+          <input
+            type="password"
+            class="form-input mt-1 block w-full rounded-md focus:border-indigo-600"
+            v-model="password"
+          />
+        </label>
 
         <div class="mt-6">
           <button
             type="submit"
             class="py-2 px-4 text-center bg-indigo-600 rounded-md w-full text-white text-sm hover:bg-indigo-500"
           >
-            Sign in
+            Register
           </button>
         </div>
       </form>
@@ -75,15 +74,17 @@ export default defineComponent({
     const router = useRouter();
     const username = ref("johndoe");
     const password = ref("@#!@#asdf1231!_!@#");
+    const confirm = ref("@#!@#asdf1231!_!@#");
 
-    function login() {
+    function handleSubmit() {
       router.push("/dashboard");
     }
 
     return {
-      login,
+      handleSubmit,
       username,
       password,
+      confirm,
     };
   },
 });
