@@ -1,0 +1,19 @@
+{
+  "name": "flask-vite-secure-app",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "vite",
+    "build": "cross-env NODE_ENV=production vite build"
+  },
+  "dependencies": {
+    "tailwindcss": "^2.0.1-compat",
+    "vue": "^3.0.0",
+    "vue-router": "^4.0.0-beta.13"
+  },
+  "devDependencies": {
+    "@tailwindcss/custom-forms": "^0.2.1",
+    "@vue/compiler-sfc": "^3.0.0",
+    "cross-env": "^7.0.2",
+    "vite": "^1.0.0-rc.8"
+  }
+}
