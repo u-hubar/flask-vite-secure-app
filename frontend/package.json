@@ -13,8 +13,9 @@
   },
   "devDependencies": {
     "@tailwindcss/custom-forms": "^0.2.1",
+    "@vitejs/plugin-vue": "^1.0.5",
     "@vue/compiler-sfc": "^3.0.0",
     "cross-env": "^7.0.2",
-    "vite": "^1.0.0-rc.8"
+    "vite": "^2.0.0-beta.21"
   }
 }
