@@ -1,10 +1,17 @@
 from flask import Flask, jsonify, request
+from flask_script import Manager
 from backend.hashing.encryption import encrypt_user_password
 
 
 from database.db import db_session, User
 
 app = Flask(__name__)
+
+manager = Manager(app)
+
+@manager.command
+def run():
+    app.run()
 
 
 @app.teardown_appcontext
@@ -36,4 +43,4 @@ def register():
 
 
 if __name__ == "__main__":
-    app.run()
+    manager.run()

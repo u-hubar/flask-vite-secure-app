@@ -17,17 +17,24 @@ services:
           max-file: "1"
           max-size: "100m"
 
-  # backend:
-  #   container_name: flask
-  #   build: ./backend
-  #   restart: unless-stopped
-  #   networks:
-  #     - backend-net
-  #   logging:
-  #     driver: "json-file"
-  #     options:
-  #         max-file: "1"
-  #         max-size: "100m"
+  backend:
+    container_name: flask
+    build:
+      context: ./backend
+    command: "python3 app.py runserver --host 0.0.0.0"
+    restart: unless-stopped
+    volumes:
+      - ./backend:/var/backend
+      - ./database:/var/database
+    expose:
+      - 5000
+    networks:
+      - backend-net
+    logging:
+      driver: "json-file"
+      options:
+          max-file: "1"
+          max-size: "100m"
 
   webserver:
     container_name: nginx
