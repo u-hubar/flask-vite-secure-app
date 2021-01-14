@@ -26,11 +26,11 @@
 
       <form class="mt-4" @submit.prevent="login">
         <label class="block">
-          <span class="text-gray-700 text-sm">Username</span>
+          <span class="text-gray-700 text-sm">E-Mail</span>
           <input
-            type="username"
+            type="text"
             class="form-input mt-1 block w-full rounded-md focus:border-indigo-600"
-            v-model="username"
+            v-model="credentials.email"
           />
         </label>
 
@@ -39,24 +39,19 @@
           <input
             type="password"
             class="form-input mt-1 block w-full rounded-md focus:border-indigo-600"
-            v-model="password"
+            v-model="credentials.password"
           />
         </label>
 
-        <div class="flex justify-between items-center mt-4">
-          <div>
-            <router-link to="/register" class="btn btn-link text-sm fontme text-indigo-700 hover:underline">Forgot your password?</router-link>
-          </div>
-
-          <div>
-            <router-link to="/register" class="btn btn-link text-sm fontme text-indigo-700 hover:underline">Register</router-link>
-          </div>
+        <div class="mt-4">
+          <router-link to="/register" class="btn btn-link text-sm fontme text-indigo-700 hover:underline">Register</router-link>
         </div>
 
         <div class="mt-6">
           <button
+            :disabled="Object.values(credentials).some(value => !value)"
             type="submit"
-            class="py-2 px-4 text-center bg-indigo-600 rounded-md w-full text-white text-sm hover:bg-indigo-500"
+            class="py-2 px-4 text-center disabled:bg-indigo-300 disabled:cursor-not-allowed bg-indigo-600 rounded-md w-full text-white text-sm hover:bg-indigo-500"
           >
             Sign in
           </button>
@@ -66,24 +61,36 @@
   </div>
 </template>
 
-<script>
-import { defineComponent, ref } from "vue";
+<script lang="ts">
+import { getTokens } from "../axios/requests"
+import { Credentials } from '../axios/requestTypes';
+import { useSession } from "../hooks/useSession"
+
+import { defineComponent, ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 
 export default defineComponent({
   setup() {
     const router = useRouter();
-    const username = ref("johndoe");
-    const password = ref("@#!@#asdf1231!_!@#");
 
-    function login() {
+    const credentials = reactive<Credentials>({
+      email: "",
+      password: "",
+    })
+
+    const tokens = useSession()
+
+    async function login() {
+      await getTokens(credentials);
+      const session = useSession();
+      if (!session.access.value || !session.refresh.value) return;
+      
       router.push("/dashboard");
     }
 
     return {
       login,
-      username,
-      password,
+      credentials
     };
   },
 });

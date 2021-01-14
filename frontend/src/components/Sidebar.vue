@@ -72,7 +72,7 @@
                 <path d="M4 12.9917C4 10.7826 4.89541 8.7826 6.34308 7.33488L7.7573 8.7491C6.67155 9.83488 6 11.3349 6 12.9917C6 16.3054 8.68629 18.9917 12 18.9917C15.3137 18.9917 18 16.3054 18 12.9917C18 11.3348 17.3284 9.83482 16.2426 8.74903L17.6568 7.33481C19.1046 8.78253 20 10.7825 20 12.9917C20 17.41 16.4183 20.9917 12 20.9917C7.58172 20.9917 4 17.41 4 12.9917Z" fill="currentColor"></path>
               </svg>
 
-          <span class="mx-4">Logout</span>
+          <span @click="resetTokens()" class="mx-4">Logout</span>
         </router-link>
       </nav>
     </div>
@@ -82,6 +82,7 @@
 <script lang="ts">
 import { defineComponent, ref } from "vue";
 import { useSidebar } from "../hooks/useSidebar";
+import { resetTokens } from "../hooks/useSession";
 
 export default defineComponent({
   setup() {
@@ -97,6 +98,7 @@ export default defineComponent({
       isOpen,
       activeClass,
       inactiveClass,
+      resetTokens
     };
   },
 });

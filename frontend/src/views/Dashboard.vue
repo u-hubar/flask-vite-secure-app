@@ -199,7 +199,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, computed, onMounted } from "vue";
+import { useSession } from "../hooks/useSession"
+import { useRouter } from "vue-router";
 
 interface Service {
   service: string;
@@ -227,12 +229,21 @@ export default defineComponent({
 
     const register = () => {
       const data = JSON.parse(JSON.stringify(newService.value));
-      console.log("Added: ", data);
+      
     };
 
     const services = ref<Service[]>([...Array(8).keys()].map(() => testService));
 
     const open = ref(false);
+
+    const isAuthenticated = computed(() => {
+      const session = useSession();
+      return Boolean(session.refresh.value.length)
+    })
+
+    onMounted(() => {
+      if (!isAuthenticated.value) useRouter().push("/");
+    })
 
     return {
       open,

@@ -61,8 +61,8 @@ export default defineComponent({
   setup() {
     const newUserCredentials = reactive<NewCredentials>({
       email: "",
-      password: null,
-      passwordConfirm: null,
+      password: "",
+      passwordConfirm: "",
     })
 
     const fields = ref<String[]>([])
@@ -79,7 +79,7 @@ export default defineComponent({
     )
 
     async function handleRegister() {
-      console.log(validate, 'string')
+      
       if (!validate) return;
       await register(newUserCredentials).then(() => router.push({ name: 'login' }));
     }
