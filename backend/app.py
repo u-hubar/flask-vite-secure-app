@@ -22,11 +22,11 @@ def shutdown_session(exception=None):
 @app.route('/api/register', methods=["POST"])
 def register():
     data = request.get_json()
-    username = data.get("username")
+    email = data.get("email")
     password = encrypt_user_password(data.get("password"))
 
     try:
-        new_user = User(username=username, password=password)
+        new_user = User(email=email, password=password)
         db_session.add(new_user)
         db_session.commit()
     except Exception as e:

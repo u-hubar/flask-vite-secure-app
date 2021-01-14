@@ -9,19 +9,19 @@ import NotFound from "./views/NotFound.vue";
 export const routes: RouteRecordRaw[] = [
   {
     path: "/",
-    name: "Login",
+    name: "login",
     component: Login,
     meta: { layout: "empty" },
   },
   {
     path: "/register",
-    name: "Register",
+    name: "register",
     component: Register,
     meta: { layout: "empty" },
   },
   {
     path: "/dashboard",
-    name: "Dashboard",
+    name: "dashboard",
     component: Dashboard,
   },
   {

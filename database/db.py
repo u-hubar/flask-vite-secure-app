@@ -13,15 +13,15 @@ Base.query = db_session.query_property()
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, nullable=False, primary_key=True)
-    username = Column(String(50), nullable=False, unique=True)
+    email = Column(String(50), nullable=False, unique=True)
     password = Column(String(256), nullable=False)
 
-    def __init__(self, username=None, password=None):
-        self.username = username
+    def __init__(self, email=None, password=None):
+        self.email = email
         self.password = password
 
     def __repr__(self):
-        return f'<User {self.username}>'
+        return f'<User {self.email}>'
 
 
 class Service(Base):

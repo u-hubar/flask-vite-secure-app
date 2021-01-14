@@ -24,38 +24,23 @@
         <span class="text-gray-700 font-semibold text-2xl">Password Manager</span>
       </div>
 
-      <form class="mt-4" @submit.prevent="handleSubmit">
-        <label class="block">
-          <span class="text-gray-700 text-sm">Username</span>
+      <form class="mt-4" @submit.prevent="handleRegister">
+        <label v-for="{ key, label, type } in fieldElements" :key="key" class="block">
+          <span v-text="label" class="text-gray-700 text-sm"/>
           <input
-            type="username"
-            class="form-input mt-1 block w-full rounded-md focus:border-indigo-600"
-            v-model="username"
-          />
-        </label>
-
-        <label class="block mt-3">
-          <span class="text-gray-700 text-sm">Password</span>
-          <input
-            type="password"
-            class="form-input mt-1 block w-full rounded-md focus:border-indigo-600"
-            v-model="password"
-          />
-        </label>
-
-        <label class="block mt-3">
-          <span class="text-gray-700 text-sm">Confirm password</span>
-          <input
-            type="password"
-            class="form-input mt-1 block w-full rounded-md focus:border-indigo-600"
-            v-model="password"
+            :type="type"
+            class="form-input mt-1 block w-full px-1 outline-none ring-2 rounded-md focus:border-indigo-600"
+            v-model="newUserCredentials[key]"
+            :class="fields.includes(key) && !newUserCredentials[key] ? 'ring-red-500':'ring-blue-500'"
+            @input="checkFieldsInput(key)"
           />
         </label>
 
         <div class="mt-6">
           <button
             type="submit"
-            class="py-2 px-4 text-center bg-indigo-600 rounded-md w-full text-white text-sm hover:bg-indigo-500"
+            class="py-2 px-4 text-center disabled:bg-indigo-300 disabled:cursor-not-allowed bg-indigo-600 rounded-md w-full text-white text-sm hover:bg-indigo-500"
+            :disabled="!validate"
           >
             Register
           </button>
@@ -65,26 +50,47 @@
   </div>
 </template>
 
-<script>
-import { defineComponent, ref } from "vue";
-import { useRouter } from "vue-router";
+<script lang="ts">
+import { fieldElements } from '../assets/data';
+import { register } from '../axios/requests';
+import { NewCredentials } from '../axios/requestTypes';
+import { defineComponent, ref, reactive, computed } from "vue";
+import router from '../router';
 
 export default defineComponent({
   setup() {
-    const router = useRouter();
-    const username = ref("johndoe");
-    const password = ref("@#!@#asdf1231!_!@#");
-    const confirm = ref("@#!@#asdf1231!_!@#");
+    const newUserCredentials = reactive<NewCredentials>({
+      email: "",
+      password: null,
+      passwordConfirm: null,
+    })
 
-    function handleSubmit() {
-      router.push("/dashboard");
+    const fields = ref<String[]>([])
+
+    function checkFieldsInput(
+      value: string
+    ){
+      if (fields.value.includes(value)) return;
+      fields.value.push(value)
+    }
+
+    const validate = computed(() =>
+      Object.values(newUserCredentials).every(value => value.length)
+    )
+
+    async function handleRegister() {
+      console.log(validate, 'string')
+      if (!validate) return;
+      await register(newUserCredentials).then(() => router.push({ name: 'login' }));
     }
 
     return {
-      handleSubmit,
-      username,
-      password,
-      confirm,
+      fieldElements,
+      newUserCredentials,
+      fields,
+      checkFieldsInput,
+      validate,
+      handleRegister,
     };
   },
 });

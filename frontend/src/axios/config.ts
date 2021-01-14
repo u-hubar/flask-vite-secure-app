@@ -9,7 +9,7 @@ const headers = {
 };
 
 export const api = Axios.create({
-  baseURL: `https://${window.location.hostname}/core/`,
+  baseURL: `https://${window.location.hostname}/`,
   responseType: 'json',
   headers,
 });
