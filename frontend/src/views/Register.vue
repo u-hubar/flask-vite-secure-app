@@ -25,7 +25,7 @@
       </div>
 
       <form class="mt-4" @submit.prevent="handleRegister">
-        <label v-for="{ key, label, type } in fieldElements" :key="key" class="block">
+        <label v-for="{ key, label, type } in registerFieldElements" :key="key" class="block">
           <span v-text="label" class="text-gray-700 text-sm"/>
           <input
             :type="type"
@@ -51,7 +51,7 @@
 </template>
 
 <script lang="ts">
-import { fieldElements } from '../assets/data';
+import { registerFieldElements } from '../assets/data';
 import { register } from '../axios/requests';
 import { NewCredentials } from '../axios/requestTypes';
 import { defineComponent, ref, reactive, computed } from "vue";
@@ -85,7 +85,7 @@ export default defineComponent({
     }
 
     return {
-      fieldElements,
+      registerFieldElements,
       newUserCredentials,
       fields,
       checkFieldsInput,

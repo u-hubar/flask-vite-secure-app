@@ -29,7 +29,6 @@
         <span class="text-sm">(Esc)</span>
       </div>
 
-      <!-- Add margin if you want to see some of the overlay behind the modal-->
       <div class="modal-content py-4 text-left px-6">
         <!--Title-->
         <div class="flex justify-between items-center pb-3">

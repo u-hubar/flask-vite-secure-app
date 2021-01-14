@@ -1,10 +1,10 @@
 from database.db import User, db_session
 from flask import Flask, jsonify, request
 from flask_script import Manager
+from sqlalchemy.exc import IntegrityError
 
 from backend.encryption.jwt_tokens import decode_token, generate_token
-from backend.encryption.password import (encrypt_user_password,
-                                         verify_user_password)
+from backend.encryption.password import (encrypt_user_password)
 
 app = Flask(__name__)
 
@@ -31,12 +31,14 @@ def register():
         new_user = User(email=email, password=password)
         db_session.add(new_user)
         db_session.commit()
-    except Exception as e:
+    except IntegrityError as e:
+        db_session.rollback()
+        error = str(e).split('\n')[0]
         return jsonify({
             "status": "error",
             "message": "Could not add user",
-            "error": f"{e}"
-        })
+            "error": f"{error}"
+        }), 400
 
     return jsonify({
         "status": "success",
@@ -47,18 +49,16 @@ def register():
 @app.route('/api/login', methods=["POST"])
 def login():
     data = request.get_json()
-    email = data.get("email")
-    password = data.get("password")
-    user = User.query.filter_by(email=email).first()
+    user = User.authenticate(**data)
 
-    if not user or not verify_user_password(user.password, password):
+    if user is None:
         return jsonify({
             "status": "failed",
             "message": "Failed getting user"
         }), 401
 
-    access_token = generate_token(identity=email, seconds=15)
-    refresh_token = generate_token(identity=email, seconds=86400) # 24h
+    access_token = generate_token(identity=user.email, seconds=15)
+    refresh_token = generate_token(identity=user.email, seconds=86400) # 24h
 
     return jsonify({
         "access": access_token,

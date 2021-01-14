@@ -25,21 +25,12 @@
       </div>
 
       <form class="mt-4" @submit.prevent="login">
-        <label class="block">
-          <span class="text-gray-700 text-sm">E-Mail</span>
+        <label v-for="{ key, label, type } in loginFieldElements" :key="key" class="block">
+          <span v-text="label" class="text-gray-700 text-sm"/>
           <input
-            type="text"
-            class="form-input mt-1 block w-full rounded-md focus:border-indigo-600"
-            v-model="credentials.email"
-          />
-        </label>
-
-        <label class="block mt-3">
-          <span class="text-gray-700 text-sm">Password</span>
-          <input
-            type="password"
-            class="form-input mt-1 block w-full rounded-md focus:border-indigo-600"
-            v-model="credentials.password"
+            :type="type"
+            class="form-input mt-1 block w-full px-1 outline-none ring-2 ring-blue-500 rounded-md focus:border-indigo-600"
+            v-model="credentials[key]"
           />
         </label>
 
@@ -62,6 +53,7 @@
 </template>
 
 <script lang="ts">
+import { loginFieldElements } from "../assets/data"
 import { getTokens } from "../axios/requests"
 import { Credentials } from '../axios/requestTypes';
 import { useSession } from "../hooks/useSession"
@@ -89,6 +81,7 @@ export default defineComponent({
     }
 
     return {
+      loginFieldElements,
       login,
       credentials
     };
