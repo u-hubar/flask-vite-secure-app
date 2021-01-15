@@ -79,7 +79,6 @@ export default defineComponent({
     )
 
     async function handleRegister() {
-      
       if (!validate) return;
       await register(newUserCredentials).then(() => router.push({ name: 'login' }));
     }

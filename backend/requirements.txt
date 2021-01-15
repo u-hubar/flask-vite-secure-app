@@ -1,5 +1,6 @@
 Flask
 SQLAlchemy
+marshmallow-sqlalchemy
 Flask-Script
 PyJWT
 cryptography

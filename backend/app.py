@@ -1,4 +1,5 @@
-from database.db import Master, User, db_session
+from database.db import Master, Service, User, db_session
+from database.schemas import ServiceSchema
 from flask import Flask, jsonify, request
 from flask_script import Manager
 from sqlalchemy.exc import IntegrityError
@@ -43,7 +44,7 @@ def register():
 
     return jsonify({
         "status": "success",
-        "message": "User added successfully"
+        "message": "User added successfuly"
     }), 201
 
 
@@ -129,7 +130,7 @@ def master_password(current_user):
 
             return jsonify({
                 "status": "success",
-                "message": "Master password successfully verified"
+                "message": "Master password successfuly verified"
             }), 200
         else:
             new_master = Master(user=current_user, master=master)
@@ -138,8 +139,33 @@ def master_password(current_user):
 
             return jsonify({
                 "status": "success",
-                "message": "Master password added successfully"
+                "message": "Master password added successfuly"
             }), 201
+
+
+@app.route('/api/service', methods=['GET', 'POST'])
+@token_required
+def service(current_user):
+    if request.method == 'GET':
+        service_schema = ServiceSchema(many=True, only=["service", "url", "username"])
+        services = Service.query.filter_by(user_id=current_user.id).all()
+        services_dump = service_schema.dump(services, many=True)
+
+        return services_dump, 200
+
+    if request.method == 'POST':
+        data = request.get_json()
+        service = data['service']
+        password = data['password']
+
+        new_service = Service(user=current_user, service=service, password=password)
+        db_session.add(new_service)
+        db_session.commit()
+
+        return jsonify({
+            "status": "success",
+            "message": "Service added successfuly"
+        }), 201
 
 
 if __name__ == "__main__":

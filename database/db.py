@@ -43,7 +43,7 @@ class User(Base):
 
 
 class Master(Base):
-    __table__ = 'master'
+    __tablename__ = 'masters'
 
     id = Column(Integer, nullable=False, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
@@ -83,6 +83,8 @@ class Service(Base):
     id = Column(Integer, nullable=False, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     service = Column(String(50), nullable=False)
+    url = Column(String(128), nullable=False)
+    username = Column(String(50), nullable=False)
     password = Column(String(256), nullable=False)
 
 

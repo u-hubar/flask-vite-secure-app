@@ -19,7 +19,7 @@ export const checkMaster = async (): Promise<void> => {
       if (err && err.response) return err.sponse.data;
       throw err;
   }
-}
+};
 
 export const sendMaster = async (payload: MasterCredentials): Promise<void> => {
   try {

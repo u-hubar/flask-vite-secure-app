@@ -1,4 +1,7 @@
 from argon2 import PasswordHasher
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+import os
+import base64
 
 
 def encrypt_user_password(password, t=16, m=2**15, p=2, hash_len=32, salt_len=16):
@@ -20,3 +23,41 @@ def verify_user_password(hash, password, t=16, m=2**15, p=2, hash_len=32, salt_l
         return False
     else:
         return is_valid
+
+
+def encrypt_service_password(key, secret, aad):
+    key = string_padding(key, 256)
+
+    key = key.encode()
+    secret = secret.encode()
+    aad = aad.encode()
+
+    aesgcm = AESGCM(key)
+    nonce = os.urandom(96)
+    ct = aesgcm.encrypt(nonce, secret, aad)
+    return base64.b64encode(nonce + ct)
+
+
+def decrypt_service_password(key, encrypted, aad):
+    enc = base64.b64decode(encrypted)
+    key = string_padding(key, 256)
+
+    key = key.encode()
+    aad = aad.encode()
+
+    aesgcm = AESGCM(key)
+    nonce = enc[:96]
+    secret = enc[96:]
+    pt = aesgcm.decrypt(nonce, secret, aad)
+    return pt.decode()
+
+
+def string_padding(string, length):
+    padding_len = len(string) % length
+    string = string + chr(padding_len) * padding_len
+    return string
+
+
+def string_unpadding(string):
+    string = string[:-ord(string[-1])]
+    return string
