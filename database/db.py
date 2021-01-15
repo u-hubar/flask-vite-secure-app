@@ -13,6 +13,7 @@ Base.query = db_session.query_property()
 
 class User(Base):
     __tablename__ = 'users'
+
     id = Column(Integer, nullable=False, primary_key=True)
     email = Column(String(50), nullable=False, unique=True)
     password = Column(String(256), nullable=False)
@@ -43,6 +44,7 @@ class User(Base):
 
 class Master(Base):
     __table__ = 'master'
+
     id = Column(Integer, nullable=False, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     master = Column(String(256), nullable=False)
@@ -77,6 +79,7 @@ class Master(Base):
 
 class Service(Base):
     __tablename__ = 'services'
+
     id = Column(Integer, nullable=False, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     service = Column(String(50), nullable=False)

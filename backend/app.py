@@ -91,41 +91,55 @@ def refresh():
     })
 
 
-@app.route('/api/master', methods=["POST"])
+@app.route('/api/master', methods=["GET", "POST"])
 @token_required
 def master_password(current_user):
-    data = request.get_json()
-    master = encrypt_user_password(data.get("master"))
-
-    master_exists = Master.is_exists(user=current_user, master=master)
+    master_exists = Master.is_exists(user_id=current_user.id)
 
     if master_exists is None:
         return jsonify({
             "status": "failed",
             "message": "Invalid user."
         }), 401
-    elif master_exists:
-        master = Master.validate(user=current_user, master=master)
 
-        if master is None:
+    if request.method == "GET":
+        if master_exists:
+            return jsonify({
+                "status": "success",
+                "message": "Master exists"
+            }), 200
+        else:
             return jsonify({
                 "status": "failed",
-                "message": "Invalid master."
-            }), 401
+                "message": "Master doesn't exist"
+            }), 400
 
-        return jsonify({
-            "status": "success",
-            "message": "Master password successfully verified"
-        }), 200
-    else:
-        new_master = Master(user=current_user, master=master)
-        db_session.add(new_master)
-        db_session.commit()
+    if request.method == "POST":
+        data = request.get_json()
+        master = encrypt_user_password(data.get("master"))
 
-        return jsonify({
-            "status": "success",
-            "message": "Master password added successfully"
-        }), 201
+        if master_exists:
+            master = Master.validate(user=current_user, master=master)
+
+            if master is None:
+                return jsonify({
+                    "status": "failed",
+                    "message": "Invalid master."
+                }), 401
+
+            return jsonify({
+                "status": "success",
+                "message": "Master password successfully verified"
+            }), 200
+        else:
+            new_master = Master(user=current_user, master=master)
+            db_session.add(new_master)
+            db_session.commit()
+
+            return jsonify({
+                "status": "success",
+                "message": "Master password added successfully"
+            }), 201
 
 
 if __name__ == "__main__":
