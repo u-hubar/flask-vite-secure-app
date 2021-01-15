@@ -1,10 +1,11 @@
-from database.db import User, db_session
+from database.db import Master, User, db_session
 from flask import Flask, jsonify, request
 from flask_script import Manager
 from sqlalchemy.exc import IntegrityError
 
-from backend.encryption.jwt_tokens import decode_token, generate_token
-from backend.encryption.password import (encrypt_user_password)
+from backend.encryption.jwt_tokens import (decode_token, generate_token,
+                                           token_required)
+from backend.encryption.password import encrypt_user_password
 
 app = Flask(__name__)
 
@@ -35,7 +36,7 @@ def register():
         db_session.rollback()
         error = str(e).split('\n')[0]
         return jsonify({
-            "status": "error",
+            "status": "failed",
             "message": "Could not add user",
             "error": f"{error}"
         }), 400
@@ -73,7 +74,7 @@ def refresh():
 
     if refresh_token is None:
         return jsonify({
-            "status": "failde",
+            "status": "failed",
             "message": "Invalid token."
         }), 401
 
@@ -88,6 +89,43 @@ def refresh():
     return jsonify({
         "access": access_token
     })
+
+
+@app.route('/api/master', methods=["POST"])
+@token_required
+def master_password(current_user):
+    data = request.get_json()
+    master = encrypt_user_password(data.get("master"))
+
+    master_exists = Master.is_exists(user=current_user, master=master)
+
+    if master_exists is None:
+        return jsonify({
+            "status": "failed",
+            "message": "Invalid user."
+        }), 401
+    elif master_exists:
+        master = Master.validate(user=current_user, master=master)
+
+        if master is None:
+            return jsonify({
+                "status": "failed",
+                "message": "Invalid master."
+            }), 401
+
+        return jsonify({
+            "status": "success",
+            "message": "Master password successfully verified"
+        }), 200
+    else:
+        new_master = Master(user=current_user, master=master)
+        db_session.add(new_master)
+        db_session.commit()
+
+        return jsonify({
+            "status": "success",
+            "message": "Master password added successfully"
+        }), 201
 
 
 if __name__ == "__main__":

@@ -57,9 +57,9 @@ def token_required(f):
         try:
             token = auth_headers[0]
             data = jwt.decode(token, _import_RS256_publickey(), algorithms=['RS256'])
-            user = User.query.filter_by(email=data['sub']).first()
+            user = User.authenticate(**data)
             if not user:
-                raise RuntimeError('User not found')
+                raise RuntimeError('Token verification failed.')
             return f(user, *args, **kwargs)
         except jwt.ExpiredSignatureError:
             return jsonify(expired_msg), 401
