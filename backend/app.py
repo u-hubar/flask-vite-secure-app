@@ -3,6 +3,9 @@ from database.schemas import ServiceSchema
 from flask import Flask, jsonify, request
 from flask_script import Manager
 from sqlalchemy.exc import IntegrityError
+import pandas as pd
+import swifter
+import json
 
 from backend.encryption.jwt_tokens import (
     decode_token,
@@ -12,6 +15,7 @@ from backend.encryption.jwt_tokens import (
 from backend.encryption.password import (
     encrypt_user_password,
     encrypt_service_password,
+    decrypt_service_password
 )
 
 app = Flask(__name__)
@@ -94,10 +98,10 @@ def refresh():
 
     data = decode_token(refresh_token)
 
-    if not data.get("authenticated"):
+    if data[1] != 200:
         return data
 
-    email = data.get("email")
+    email = data[0]["sub"]
     access_token = generate_token(identity=email, seconds=15)
 
     return jsonify({"access": access_token})
@@ -230,12 +234,21 @@ def show_passwords(current_user):
         )
 
     service_schema = ServiceSchema(
-        many=True, only=["password"]
+        many=True, only=["service", "username", "password"]
     )
     passwords = Service.query.filter_by(user_id=current_user.id).all()
     passwords_dump = service_schema.dump(passwords)
 
-    return passwords_dump, 200
+    passwords_df = pd.DataFrame(passwords_dump)
+    decrypted_passwords = passwords_df.swifter.apply(
+        lambda x: decrypt_service_password(master, x["password"], x["service"]+x["username"])
+    )
+
+    passwords_json = decrypted_passwords.to_json(orient="records")
+    parsed_passwords = json.loads(passwords_json)
+    response = json.dumps(parsed_passwords, indent=4)
+
+    return response, 200
 
 
 if __name__ == "__main__":

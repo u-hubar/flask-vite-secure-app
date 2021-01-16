@@ -25,8 +25,8 @@
 
     <div class="mt-8"></div>
 
-    <modal :open.sync="open" :title="masterPassword ? 'Add service' : 'Enter master password'">
-      <template #default>
+    <modal v-model:open="open" :title="masterPassword ? 'Add service' : 'Enter master password'">
+      <template v-if="open" #default>
         <add-service v-if="masterPassword" />
         <enter-master-password v-else />
       </template>
@@ -111,9 +111,7 @@ export default defineComponent({
    //   const data = JSON.parse(JSON.stringify(newService.value));
    // };
 
-    const services = ref<Service[]>(
-      [...Array(9).keys()].map(() => testService)
-    );
+    const services = ref<Service[]>([]);
 
     const open = ref(false);
 
@@ -129,6 +127,10 @@ export default defineComponent({
       else open.value = true;
     }
 
+    function handler(event: any) {
+      console.log('received', event)
+    }
+
     onMounted(() => {
       if (!isAuthenticated.value) useRouter().push("/");
     });
@@ -137,7 +139,8 @@ export default defineComponent({
       open,
       services,
       showPasswords,
-      masterPassword
+      masterPassword,
+      handler
     };
   },
 });

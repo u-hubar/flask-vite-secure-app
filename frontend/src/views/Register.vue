@@ -25,16 +25,21 @@
       </div>
 
       <form class="mt-4" @submit.prevent="handleRegister">
-        <label v-for="{ key, label, type } in registerFieldElements" :key="key" class="block">
-          <span v-text="label" class="text-gray-700 text-sm"/>
-          <input
-            :type="type"
-            class="form-input mt-1 block w-full px-1 outline-none ring-2 rounded-md focus:border-indigo-600"
-            v-model="newUserCredentials[key]"
-            :class="fields.includes(key) && !newUserCredentials[key] ? 'ring-red-500':'ring-blue-500'"
-            @input="checkFieldsInput(key)"
-          />
-        </label>
+
+        <input-field
+          v-for="field in loginFieldElements"
+          :key="field"
+          :input="field"
+          :error="fields.includes(key) && !credentials[field.key]"
+          v-model:value="credentials[field.key]"
+          @input="checkFieldsInput(key)"
+        />
+        <input-field
+          :input="{type: 'password', label: 'Confirm password' }"
+          :error="fields.includes('confirm') && !passwordConfirm"
+          v-model:value="passwordConfirm"
+          @input="checkFieldsInput('confirm')"
+        />
 
         <div class="mt-6">
           <button
@@ -51,19 +56,20 @@
 </template>
 
 <script lang="ts">
-import { registerFieldElements } from '../assets/data';
+import { loginFieldElements } from '../assets/data';
 import { register } from '../axios/requests';
-import { NewCredentials } from '../axios/requestTypes';
+import { Credentials } from '../axios/requestTypes';
 import { defineComponent, ref, reactive, computed } from "vue";
 import router from '../router';
 
 export default defineComponent({
   setup() {
-    const newUserCredentials = reactive<NewCredentials>({
+    const credentials = reactive<Credentials>({
       email: "",
       password: "",
-      passwordConfirm: "",
     })
+
+    const passwordConfirm = ref(''); 
 
     const fields = ref<String[]>([])
 
@@ -74,22 +80,27 @@ export default defineComponent({
       fields.value.push(value)
     }
 
+    const passwordMatching = computed(() => {
+      return passwordConfirm.value === credentials.password
+    })
+
     const validate = computed(() =>
-      Object.values(newUserCredentials).every(value => value.length)
+      Object.values(credentials).every(value => value.length) && passwordMatching.value
     )
 
     async function handleRegister() {
       if (!validate) return;
-      await register(newUserCredentials).then(() => router.push({ name: 'login' }));
+      await register(credentials).then(() => router.push({ name: 'login' }));
     }
 
     return {
-      registerFieldElements,
-      newUserCredentials,
+      loginFieldElements,
+      credentials,
       fields,
       checkFieldsInput,
       validate,
       handleRegister,
+      passwordConfirm
     };
   },
 });

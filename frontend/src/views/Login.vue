@@ -21,26 +21,35 @@
             fill="white"
           />
         </svg>
-        <span class="text-gray-700 font-semibold text-2xl">Password Manager</span>
+        <span class="text-gray-700 font-semibold text-2xl"
+          >Password Manager</span
+        >
       </div>
 
       <form class="mt-4" @submit.prevent="login">
-        <label v-for="{ key, label, type } in loginFieldElements" :key="key" class="block">
-          <span v-text="label" class="text-gray-700 text-sm"/>
-          <input
-            :type="type"
-            class="form-input mt-1 block w-full px-1 outline-none ring-2 ring-blue-500 rounded-md focus:border-indigo-600"
-            v-model="credentials[key]"
-          />
-        </label>
+        <input-field
+          v-for="field in loginFieldElements"
+          :key="field"
+          :input="field"
+          v-model:value="credentials[field.key]"
+        />
 
-        <div class="mt-4">
-          <router-link to="/register" class="btn btn-link text-sm fontme text-indigo-700 hover:underline">Register</router-link>
+        <div class="mt-4 flex justify-between">
+          <router-link
+            to="/register"
+            class="btn btn-link text-sm fontme text-indigo-700 hover:underline"
+            >Register</router-link
+          >
+
+          <span class="text-sm" v-if="counter && counter < 5" v-text="`You have ${5 - counter} tries left`"/>
+          <span v-else>
+            <timer :deadline="time" @reset="timerHandler" />
+          </span>
         </div>
 
         <div class="mt-6">
           <button
-            :disabled="Object.values(credentials).some(value => !value)"
+            :disabled="Object.values(credentials).some((value) => !value) || counter > 4"
             type="submit"
             class="py-2 px-4 text-center disabled:bg-indigo-300 disabled:cursor-not-allowed bg-indigo-600 rounded-md w-full text-white text-sm hover:bg-indigo-500"
           >
@@ -53,37 +62,66 @@
 </template>
 
 <script lang="ts">
-import { loginFieldElements } from "../assets/data"
-import { getTokens } from "../axios/requests"
-import { Credentials } from '../axios/requestTypes';
-import { useSession } from "../hooks/useSession"
+import { loginFieldElements } from "../assets/data";
+import { getTokens } from "../axios/requests";
+import { Credentials } from "../axios/requestTypes";
+import { useSession } from "../hooks/useSession";
 
-import { defineComponent, ref, reactive } from "vue";
+import { defineComponent, ref, reactive, watch, computed } from "vue";
 import { useRouter } from "vue-router";
+import InputField from "../components/utils/InputField.vue";
+import Timer from "../components/utils/Timer.vue";
+
 
 export default defineComponent({
+  components: { InputField, Timer },
   setup() {
     const router = useRouter();
+    const counter = ref(0);
+    const time = ref(0);
 
     const credentials = reactive<Credentials>({
       email: "",
       password: "",
+    });
+
+    const tokens = useSession();
+
+    const timerReset = ref(false)
+
+
+    watch(counter, value => {
+      if (value === 5) time.value = Date.now() + 59000;
     })
 
-    const tokens = useSession()
+    function timerHandler(value: boolean) {
+      counter.value = 0;
+      time.value = 0;
+      timerReset.value = true;
+    }
 
     async function login() {
-      await getTokens(credentials);
-      const session = useSession();
-      if (!session.access.value || !session.refresh.value) return;
-      
-      router.push("/dashboard");
+      try {
+        await getTokens(credentials)
+        const session = useSession();
+        if (!session.access.value || !session.refresh.value) {
+          counter.value += 1;
+          return
+        };
+        router.push("/dashboard");
+      } catch (err) {
+        console.log(`hello my error`)
+      }
     }
 
     return {
       loginFieldElements,
       login,
-      credentials
+      credentials,
+      counter,
+      time,
+      timerHandler,
+      timerReset
     };
   },
 });

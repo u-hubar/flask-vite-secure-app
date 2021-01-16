@@ -1,40 +1,70 @@
 <template>
-  <form @submit.prevent="addService">
-    <div class="grid grid-cols-3 sm:grid-cols-1 gap-10 mb-2">
-      <div>
-        <label class="text-gray-700" for="passwordConfirmation"
-          v-text="'Master password'" />
-        <input
-          class="form-input h-8 w-full mt-4 rounded-lg border-2 focus:border-indigo-600"
-          type="password"
-          v-model="masterPassword"
-        />
-
-      <div class="mt-6">
-        <button
-          :disabled="!masterPassword.length"
-          type="submit"
-          class="py-2 px-4 text-center disabled:bg-indigo-300 disabled:cursor-not-allowed bg-indigo-600 rounded-md w-full text-white text-sm hover:bg-indigo-500"
-        >
-          Submit master password
-        </button>
-      </div>
-      </div>
+  <form @submit.prevent="sendMasterPassword">
+    <input-field
+      class="mt-4"
+      :input="{ label: 'Enter password', type: 'password' }"
+      v-model:value="masterPassword"
+    />
+    <input-field
+      class="mt-4"
+      v-if="!hasMaster"
+      :input="{ type: 'password', label: 'Confirm your password' }"
+      v-model:value="confirmPassword"
+    />
+    <div class="mt-3 text-center">
+      <span
+        class="text-sm text-red-500"
+        v-if="!hasMaster"
+        v-text="'You cannot change master password so choose wisely'"
+      />
+      <button
+        :disabled="!validate"
+        type="submit"
+        class="mt-2 py-2 px-4 text-center disabled:bg-indigo-300 disabled:cursor-not-allowed bg-indigo-600 rounded-md w-full text-white text-sm hover:bg-indigo-500"
+      >
+        Submit master password {{ hasMaster }} {{ validate }}
+      </button>
     </div>
   </form>
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from "vue";
+import { computed, defineComponent, ref, onMounted } from "vue";
+import { checkMaster } from "../../axios/requests";
+import InputField from "../utils/InputField.vue";
 
 export default defineComponent({
+  components: { InputField },
   setup() {
     const masterPassword = ref("");
-    function sendMasterPassword() {}
+    const confirmPassword = ref("");
+
+    function sendMasterPassword() {
+      console.log("sendMasterPassword");
+    }
+
+    const hasMaster = ref(false);
+
+    onMounted(async () => {
+      hasMaster.value = await checkMaster();
+    });
+
+    const validate = computed(() => {
+
+      const pass = masterPassword.value;
+      const pass2 = confirmPassword.value;
+
+      return hasMaster.value
+        ? Boolean(pass)
+        : (pass && pass2 && pass === pass2);
+    });
 
     return {
       sendMasterPassword,
-      masterPassword
+      confirmPassword,
+      masterPassword,
+      hasMaster,
+      validate,
     };
   },
 });

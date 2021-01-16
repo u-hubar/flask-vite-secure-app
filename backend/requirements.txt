@@ -5,3 +5,7 @@ Flask-Script
 PyJWT
 cryptography
 argon2-cffi
+numpy
+pandas==1.1.5
+swifter
+json

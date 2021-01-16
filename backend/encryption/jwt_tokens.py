@@ -23,14 +23,13 @@ def generate_token(identity, seconds):
 
 
 def decode_token(jwt_token):
-    invalid_msg = {"message": "Invalid token.", "authenticated": False}
-    expired_msg = {"message": "Expired token.", "authenticated": False}
+    invalid_msg = {"message": "Invalid token."}
+    expired_msg = {"message": "Expired token."}
     try:
         data = jwt.decode(
             jwt_token, _import_RS256_publickey(), algorithms=["RS256"]
         )
-        data["authenticated"] = True
-        return data
+        return data, 200
     except jwt.ExpiredSignatureError:
         return jsonify(expired_msg), 401
     except (jwt.InvalidTokenError, Exception) as e:
@@ -41,18 +40,16 @@ def decode_token(jwt_token):
 def token_required(f):
     @wraps(f)
     def _verify(*args, **kwargs):
-        auth_headers = request.headers.get("Authorization", "").split(
-            "Bearer "
-        )
+        auth_headers = request.headers.get("Authorization", "").split(" ")
 
         invalid_msg = {"message": "Invalid token.", "authenticated": False}
         expired_msg = {"message": "Expired token.", "authenticated": False}
 
-        if len(auth_headers) != 1:
+        if len(auth_headers) != 2:
             return jsonify(invalid_msg), 401
 
         try:
-            token = auth_headers[0]
+            token = auth_headers[1]
             data = jwt.decode(
                 token, _import_RS256_publickey(), algorithms=["RS256"]
             )
@@ -69,7 +66,7 @@ def token_required(f):
     return _verify
 
 
-def _import_RS256_publickey(key_path="backend/encrytpion/jwtRS256.key.pub"):
+def _import_RS256_publickey(key_path="backend/encryption/jwtRS256.key.pub"):
     with open(key_path, "rb") as pem:
         pemlines = pem.read()
     public_key = load_pem_public_key(pemlines, backend=default_backend())

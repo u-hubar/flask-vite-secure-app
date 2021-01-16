@@ -19,9 +19,8 @@ export async function setTokens({ access, refresh }: Tokens) {
   localStorage.setItem('password_manager_state', JSON.stringify(state))
 }
 
-
 export async function extendSession() {
-  state.access = await refreshToken(state.refresh);
+  await refreshToken();
 }
 
 export function resetAccessToken() {
@@ -32,5 +31,6 @@ export function resetAccessToken() {
 export function resetTokens() {
   state.access = '';
   state.refresh = '';
+  localStorage.setItem('password_manager_state', '')
   localStorage.clear();
 }

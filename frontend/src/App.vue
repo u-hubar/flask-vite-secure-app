@@ -21,6 +21,7 @@ export default defineComponent({
 
     onMounted(() => {
       const tokens = localStorage.getItem('password_manager_state');
+      if (!tokens) return;
       setTokens(JSON.parse(tokens))
     })
 

@@ -4,6 +4,7 @@ import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 import Dashboard from "./views/Dashboard.vue";
 import Register from "./views/Register.vue";
 import Login from "./views/Login.vue";
+import Logs from "./views/Logs.vue";
 import NotFound from "./views/NotFound.vue";
 
 export const routes: RouteRecordRaw[] = [
@@ -23,6 +24,11 @@ export const routes: RouteRecordRaw[] = [
     path: "/dashboard",
     name: "dashboard",
     component: Dashboard,
+  },
+  {
+    path: "/logs",
+    name: "logs",
+    component: Logs,
   },
   {
     path: "/:pathMatch(.*)*",
