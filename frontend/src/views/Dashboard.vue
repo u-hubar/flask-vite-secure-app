@@ -1,6 +1,5 @@
 <template>
   <div>
-    {{ open }}
     <div>
       <div class="flex justify-between">
         <h3 class="text-gray-700 text-3xl font-medium">Passwords Dashboard</h3>
@@ -27,8 +26,8 @@
 
     <modal v-model:open="open" :title="masterPassword ? 'Add service' : 'Enter master password'">
       <template v-if="open" #default>
-        <add-service v-if="masterPassword" />
-        <enter-master-password v-else />
+        <add-service v-model:open="open" v-if="masterPassword" />
+        <enter-master-password v-else v-model:masterPassword="masterPassword" />
       </template>
     </modal>
 
@@ -44,9 +43,7 @@
                   v-for="item in ['Service', 'URL', 'Username', 'Password']"
                   :key="item"
                   class="px-6 py-2 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Service
-                </th>
+                v-text="item" />
               </tr>
             </thead>
 
@@ -87,10 +84,10 @@ import Modal from "../components/Modal.vue"
 import ServicesRow from "../components/table/ServicesRow.vue";
 
 import { computed, defineComponent, onMounted, ref } from "vue";
-import { checkMaster } from "../axios/requests";
+import { checkMaster, fetchServices } from "../axios/requests";
 import { useRouter } from "vue-router";
 import { useSession } from "../hooks/useSession";
-import { Service } from "../types"
+import { Service } from "../axios/responseTypes"
 
 export default defineComponent({
   components: {
@@ -100,13 +97,6 @@ export default defineComponent({
     ServicesRow,
   },
   setup() {
-    const testService: Service = {
-      service: "Google Cloud",
-      url: "https://cloud.google.com/",
-      username: "Vlad",
-      password: "HASH",
-    };
-
    //  const register = () => {
    //   const data = JSON.parse(JSON.stringify(newService.value));
    // };
@@ -131,8 +121,9 @@ export default defineComponent({
       console.log('received', event)
     }
 
-    onMounted(() => {
+    onMounted(async () => {
       if (!isAuthenticated.value) useRouter().push("/");
+      services.value = await fetchServices();
     });
 
     return {

@@ -22,7 +22,7 @@
         type="submit"
         class="mt-2 py-2 px-4 text-center disabled:bg-indigo-300 disabled:cursor-not-allowed bg-indigo-600 rounded-md w-full text-white text-sm hover:bg-indigo-500"
       >
-        Submit master password {{ hasMaster }} {{ validate }}
+        Submit master password
       </button>
     </div>
   </form>
@@ -30,17 +30,21 @@
 
 <script lang="ts">
 import { computed, defineComponent, ref, onMounted } from "vue";
-import { checkMaster } from "../../axios/requests";
+import { checkMaster, sendMaster } from "../../axios/requests";
 import InputField from "../utils/InputField.vue";
 
 export default defineComponent({
   components: { InputField },
-  setup() {
+  emits: ["update:masterPassword"],
+  setup(props, { emit }) {
     const masterPassword = ref("");
     const confirmPassword = ref("");
 
-    function sendMasterPassword() {
-      console.log("sendMasterPassword");
+    async function sendMasterPassword() {
+      await sendMaster(masterPassword.value)
+      .then(() =>
+        emit("update:masterPassword", masterPassword.value)
+      );
     }
 
     const hasMaster = ref(false);
@@ -50,13 +54,10 @@ export default defineComponent({
     });
 
     const validate = computed(() => {
-
       const pass = masterPassword.value;
       const pass2 = confirmPassword.value;
 
-      return hasMaster.value
-        ? Boolean(pass)
-        : (pass && pass2 && pass === pass2);
+      return hasMaster.value ? Boolean(pass) : pass && pass2 && pass === pass2;
     });
 
     return {

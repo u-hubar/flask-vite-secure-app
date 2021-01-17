@@ -1,23 +1,30 @@
-export const registerFieldElements = [{
-    'key': 'email',
-    'label': 'E-Mail',
-    'type': 'email'
-},{
-    'key': 'password',
-    'label': 'Password',
-    'type': 'password'
-},{
-    'key': 'passwordConfirm',
-    'label': 'Confirm Password',
-    'type': 'password'
+export const loginFieldElements = [{
+  'key': 'email',
+  'label': 'E-Mail',
+  'type': 'email'
+}, {
+  'key': 'password',
+  'label': 'Password',
+  'type': 'password'
 }]
 
-export const loginFieldElements = [{
-    'key': 'email',
-    'label': 'E-Mail',
-    'type': 'email'
-},{
+export const serviceFieldElements = [
+  {
+    'key': 'service',
+    'label': 'Service',
+    'type': 'text'
+  },
+  {
+    'key': 'url',
+    'label': 'URL',
+    'type': 'text'
+  },
+  {
+    'key': 'username',
+    'label': 'Login',
+    'type': 'text'
+  }, {
     'key': 'password',
     'label': 'Password',
     'type': 'password'
-}]
+  },]

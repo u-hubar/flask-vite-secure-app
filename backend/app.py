@@ -3,9 +3,9 @@ from database.schemas import ServiceSchema
 from flask import Flask, jsonify, request
 from flask_script import Manager
 from sqlalchemy.exc import IntegrityError
-import pandas as pd
-import swifter
-import json
+# import pandas as pd
+# import swifter
+# import json
 
 from backend.encryption.jwt_tokens import (
     decode_token,
@@ -15,7 +15,6 @@ from backend.encryption.jwt_tokens import (
 from backend.encryption.password import (
     encrypt_user_password,
     encrypt_service_password,
-    decrypt_service_password
 )
 
 app = Flask(__name__)
@@ -109,8 +108,8 @@ def refresh():
 
 @app.route("/api/master", methods=["GET", "POST"])
 @token_required
-def master_password(current_user):
-    master_exists = Master.is_exists(user_id=current_user.id)
+def master_password(user_id):
+    master_exists = Master.is_exists(user_id)
 
     if master_exists is None:
         return jsonify({"status": "failed", "message": "Invalid user."}), 401
@@ -130,11 +129,11 @@ def master_password(current_user):
             )
 
     if request.method == "POST":
-        data = request.get_json()
-        master = encrypt_user_password(data.get("master"))
+        data = request.get_json(force=True)
+        master = data.get("master")
 
         if master_exists:
-            master = Master.validate(user=current_user, master=master)
+            master = Master.validate(user_id, master)
 
             if master is None:
                 return (
@@ -154,7 +153,7 @@ def master_password(current_user):
                 200,
             )
         else:
-            new_master = Master(user=current_user, master=master)
+            new_master = Master(user_id=user_id, master=master)
             db_session.add(new_master)
             db_session.commit()
 
@@ -171,25 +170,25 @@ def master_password(current_user):
 
 @app.route("/api/service", methods=["GET", "POST"])
 @token_required
-def service(current_user):
+def service(user_id):
     if request.method == "GET":
         service_schema = ServiceSchema(
             many=True, only=["service", "url", "username"]
         )
-        services = Service.query.filter_by(user_id=current_user.id).all()
+        services = Service.query.filter_by(user_id=user_id).all()
         services_dump = service_schema.dump(services)
 
-        return services_dump, 200
+        return jsonify(services_dump), 200
 
     if request.method == "POST":
-        data = request.get_json()
+        data = request.get_json(force=True)
         service = data["service"]
         url = data["url"]
         username = data["username"]
         password = data["password"]
 
-        master = encrypt_user_password(data.get("master"))
-        master = Master.validate(user=current_user, master=master)
+        master = Master.query.filter_by(user_id=user_id).first()
+        # master = '123' what to add? :(
 
         if master is None:
             return (
@@ -202,7 +201,7 @@ def service(current_user):
         )
 
         new_service = Service(
-            user=current_user,
+            user_id=user_id,
             service=service,
             url=url,
             username=username,
@@ -221,11 +220,11 @@ def service(current_user):
 
 @app.route('/api/passwords', methods=["POST"])
 @token_required
-def show_passwords(current_user):
+def show_passwords(user_id):
     data = request.get_json()
 
     master = encrypt_user_password(data.get("master"))
-    master = Master.validate(user=current_user, master=master)
+    master = Master.validate(user=user_id, master=master)
 
     if master is None:
         return (
@@ -236,19 +235,21 @@ def show_passwords(current_user):
     service_schema = ServiceSchema(
         many=True, only=["service", "username", "password"]
     )
-    passwords = Service.query.filter_by(user_id=current_user.id).all()
+    passwords = Service.query.filter_by(user_id=user_id).all()
     passwords_dump = service_schema.dump(passwords)
 
-    passwords_df = pd.DataFrame(passwords_dump)
-    decrypted_passwords = passwords_df.swifter.apply(
-        lambda x: decrypt_service_password(master, x["password"], x["service"]+x["username"])
-    )
+    # passwords_df = pd.DataFrame(passwords_dump)
+    # decrypted_passwords = passwords_df.swifter.apply(
+    #     lambda x: decrypt_service_password(master, x["password"], x["service"]+x["username"])
+    # )
 
-    passwords_json = decrypted_passwords.to_json(orient="records")
-    parsed_passwords = json.loads(passwords_json)
-    response = json.dumps(parsed_passwords, indent=4)
+    # passwords_json = decrypted_passwords.to_json(orient="records")
+    # parsed_passwords = json.loads(passwords_json)
+    # response = json.dumps(parsed_passwords, indent=4)
 
-    return response, 200
+    # return response, 200
+
+    return passwords_dump, 200
 
 
 if __name__ == "__main__":

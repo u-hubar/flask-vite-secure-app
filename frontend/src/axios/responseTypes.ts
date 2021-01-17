@@ -4,6 +4,7 @@ export interface Tokens {
 }
 
 export interface Service {
+  id: number,
   service: string;
   url: string;
   username: string;

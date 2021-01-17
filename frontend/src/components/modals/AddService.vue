@@ -1,34 +1,18 @@
 <template>
-  <form @submit.prevent="addService()">
-    <div class="grid grid-cols-3 sm:grid-cols-1 gap-10 mb-2">
-      <div>
-        <label class="text-gray-700" for="username">Username</label>
-        <input
-          class="form-input h-8 w-full mt-4 rounded-md border-2 focus:border-indigo-600"
-          type="text"
-          v-model="newService.username"
-        />
-      </div>
+  <form @submit.prevent="addNewService">
 
-      <div>
-        <label class="text-gray-700" for="password">Password</label>
-        <input
-          class="form-input h-8 w-full mt-4 rounded-md border-2 focus:border-indigo-600"
-          type="password"
-          v-model="newService.password"
+        <input-field
+          v-for="field in serviceFieldElements"
+          :key="field"
+          :input="field"
+          v-model:value="service[field.key]"
         />
-      </div>
 
-      <div>
-        <label class="text-gray-700" for="passwordConfirmation"
-          >Password Confirmation</label
-        >
-        <input
-          class="form-input h-8 w-full mt-4 rounded-lg border-2 focus:border-indigo-600"
-          type="password"
-          v-model="confirmPassword"
+        <input-field
+          :input="{type: 'password', label: 'Confirm password'}"
+          v-model:value="confirmPassword"
         />
-      </div>
+
 
       <div class="mt-6">
         <button
@@ -39,18 +23,20 @@
           Add new service
         </button>
       </div>
-    </div>
   </form>
 </template>
 
 <script lang="ts">
 import { computed, defineComponent, reactive, ref } from "vue";
 import { NewService } from "../../axios/requestTypes";
+import { serviceFieldElements } from "../../assets/data";
+import { addService } from "../../axios/requests";
 
 export default defineComponent({
-  setup() {
+  emits: ["update:open"],
+  setup(props, { emit }) {
     const confirmPassword = ref("");
-    const newService = reactive<NewService>({
+    const service = reactive<NewService>({
       service: "",
       url: "",
       username: "",
@@ -58,21 +44,25 @@ export default defineComponent({
     });
 
     const validate = computed(() => {
-      const values = Object.values(newService);
+      const values = Object.values(service);
       const everyValueSet = values.every((value) => value.length);
-      const matching = confirmPassword.value === newService.password;
+      const matching = confirmPassword.value === service.password;
       return everyValueSet && matching;
     });
 
-    function addService() {
-      console.log("Placeholder for adding service");
+    async function addNewService() {
+      console.log("adding new service", service);
+      await addService(service).then(() => {
+        emit("update:open", false);
+      });
     }
 
     return {
-      addService,
-      newService,
+      addNewService,
+      service,
       confirmPassword,
       validate,
+      serviceFieldElements,
     };
   },
 });

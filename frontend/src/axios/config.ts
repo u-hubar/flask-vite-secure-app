@@ -24,6 +24,7 @@ export const restricted = Axios.create({
 
 const addAccessToken = (config: AxiosRequestConfig) => {
   const session = useSession();
+  console.log(`access token: ${session.access.value}`, config.url)
   return { ...config, headers: { Authorization: `Bearer ${session.access.value}` } };
 };
 
@@ -53,5 +54,5 @@ export const interceptResponseErrors = async (error: AxiosError) => {
 };
 
 restricted.interceptors.request.use(interceptRequests, interceptRequestErrors);
-restricted.interceptors.response.use((config: any) => config, interceptResponseErrors);
-// restricted.interceptors.response.use((config: any) => config, interceptRequestErrors);
+true ? restricted.interceptors.response.use((config: any) => config, interceptResponseErrors)
+: restricted.interceptors.response.use((config: any) => config, interceptRequestErrors);

@@ -38,7 +38,7 @@ def verify_user_password(
 
 
 def encrypt_service_password(key, secret, aad):
-    key = string_padding(key, 256)
+    key = string_padding(key, 32)
 
     key = key.encode()
     secret = secret.encode()
@@ -52,7 +52,7 @@ def encrypt_service_password(key, secret, aad):
 
 def decrypt_service_password(key, encrypted, aad):
     enc = base64.b64decode(encrypted)
-    key = string_padding(key, 256)
+    key = string_padding(key, 32)
 
     key = key.encode()
     aad = aad.encode()
@@ -65,7 +65,7 @@ def decrypt_service_password(key, encrypted, aad):
 
 
 def string_padding(string, length):
-    padding_len = len(string) % length
+    padding_len = length - len(string) % length
     string = string + chr(padding_len) * padding_len
     return string
 

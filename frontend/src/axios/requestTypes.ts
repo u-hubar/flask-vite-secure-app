@@ -3,16 +3,6 @@ export interface Credentials {
     password: string,
 }
 
-export interface MasterCredentials {
-    master: string
-}
-
-
-export interface NewMasterCredentials extends MasterCredentials {
-    masterConfirm: string,
-}
-
-
 export interface NewService {
     service: string,
     url: string,

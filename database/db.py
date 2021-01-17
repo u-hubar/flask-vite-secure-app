@@ -16,9 +16,9 @@ class User(Base):
 
     id = Column(Integer, nullable=False, primary_key=True)
     email = Column(String(50), nullable=False, unique=True)
-    password = Column(String(256), nullable=False)
-    master = relationship("Master", backref=backref("user", uselist=False))
-    services = relationship('Service', backref="user", lazy=False)
+    password = Column(String(512), nullable=False)
+    master = relationship("Master", backref=backref("users", uselist=False))
+    services = relationship('Service', backref="users", lazy=False)
 
     def __init__(self, email=None, password=None):
         self.email = email
@@ -36,7 +36,7 @@ class User(Base):
             return None
 
         user = cls.query.filter_by(email=email).first()
-        if not user or not verify_user_password(user.password, password):
+        if user is None or not verify_user_password(user.password, password):
             return None
 
         return user
@@ -47,31 +47,26 @@ class Master(Base):
 
     id = Column(Integer, nullable=False, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    master = Column(String(256), nullable=False)
+    master = Column(String(512), nullable=False)
 
     @classmethod
-    def is_exists(cls, **kwargs):
-        user_id = kwargs.get('user_id')
-
+    def is_exists(cls, user_id):
         if not user_id:
             return None
 
         master = cls.query.filter_by(user_id=user_id).first()
-        if not master:
+        if master is None:
             return False
 
         return True
 
     @classmethod
-    def validate(cls, **kwargs):
-        user_id = kwargs.get('user_id')
-        user_master = kwargs.get('master')
-
+    def validate(cls, user_id, user_master):
         if not user_id:
             return None
 
         master = cls.query.filter_by(user_id=user_id).first()
-        if not master or not verify_user_password(master.master, user_master):
+        if master is None or not verify_user_password(master.master, user_master):
             return None
 
         return user_master

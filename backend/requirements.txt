@@ -1,11 +1,13 @@
 Flask
+requests==2.7.0
 SQLAlchemy
 marshmallow-sqlalchemy
 Flask-Script
 PyJWT
 cryptography
 argon2-cffi
-numpy
-pandas==1.1.5
-swifter
-json
+# jedi==0.17.2
+# ipython==7.18.1
+# numpy
+# pandas==1.1.5
+# swifter

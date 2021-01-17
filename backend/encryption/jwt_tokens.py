@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.serialization import (load_pem_private_key,
                                                           load_pem_public_key)
 from database.db import User
 from flask import jsonify, request
+import re
 
 
 def generate_token(identity, seconds):
@@ -40,28 +41,29 @@ def decode_token(jwt_token):
 def token_required(f):
     @wraps(f)
     def _verify(*args, **kwargs):
-        auth_headers = request.headers.get("Authorization", "").split(" ")
+        auth_header = request.headers.get("Authorization", "")
+        token = re.sub("Bearer ", "", auth_header)
 
         invalid_msg = {"message": "Invalid token.", "authenticated": False}
         expired_msg = {"message": "Expired token.", "authenticated": False}
 
-        if len(auth_headers) != 2:
+        if not len(token):
             return jsonify(invalid_msg), 401
 
         try:
-            token = auth_headers[1]
             data = jwt.decode(
                 token, _import_RS256_publickey(), algorithms=["RS256"]
             )
             user = User.query.filter_by(email=data["sub"]).first()
+            user_id = user.id
             if not user:
                 raise RuntimeError("Token verification failed.")
-            return f(user, *args, **kwargs)
+            return f(user_id, *args, **kwargs)
         except jwt.ExpiredSignatureError:
             return jsonify(expired_msg), 401
         except (jwt.InvalidTokenError, Exception) as e:
             print(e)
-            return jsonify(invalid_msg), 401
+            return jsonify(invalid_msg), 402
 
     return _verify
 
