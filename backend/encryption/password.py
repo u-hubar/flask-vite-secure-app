@@ -1,7 +1,9 @@
+import base64
+import os
+import re
+
 from argon2 import PasswordHasher
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-import os
-import base64
 
 
 def encrypt_user_password(
@@ -38,13 +40,11 @@ def verify_user_password(
 
 
 def encrypt_service_password(key, secret, aad):
-    key = string_padding(key, 32)
-
-    key = key.encode()
+    kek = decode_argon2id_base64(key)
     secret = secret.encode()
     aad = aad.encode()
 
-    aesgcm = AESGCM(key)
+    aesgcm = AESGCM(kek)
     nonce = os.urandom(96)
     ct = aesgcm.encrypt(nonce, secret, aad)
     return base64.b64encode(nonce + ct)
@@ -52,24 +52,21 @@ def encrypt_service_password(key, secret, aad):
 
 def decrypt_service_password(key, encrypted, aad):
     enc = base64.b64decode(encrypted)
-    key = string_padding(key, 32)
 
-    key = key.encode()
+    kek = decode_argon2id_base64(key)
     aad = aad.encode()
 
-    aesgcm = AESGCM(key)
+    aesgcm = AESGCM(kek)
     nonce = enc[:96]
     secret = enc[96:]
     pt = aesgcm.decrypt(nonce, secret, aad)
     return pt.decode()
 
 
-def string_padding(string, length):
-    padding_len = length - len(string) % length
-    string = string + chr(padding_len) * padding_len
-    return string
-
-
-def string_unpadding(string):
-    string = string[: -ord(string[-1])]
-    return string
+def decode_argon2id_base64(hash, altchars=b'+/'):
+    hash = ('$' + hash.split('$')[-1]).encode()
+    hash = re.sub(rb'[^a-zA-Z0-9%s]+' % altchars, b'', hash)
+    missing_padding = len(hash) % 4
+    if missing_padding:
+        hash += b'=' * (4 - missing_padding)
+    return base64.b64decode(hash, altchars)

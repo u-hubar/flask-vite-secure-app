@@ -13,7 +13,7 @@ from backend.encryption.jwt_tokens import (
     token_required,
 )
 from backend.encryption.password import (
-    encrypt_user_password,
+    decrypt_service_password, encrypt_user_password,
     encrypt_service_password,
 )
 
@@ -153,6 +153,7 @@ def master_password(user_id):
                 200,
             )
         else:
+            master = encrypt_user_password(master)
             new_master = Master(user_id=user_id, master=master)
             db_session.add(new_master)
             db_session.commit()
@@ -188,7 +189,7 @@ def service(user_id):
         password = data["password"]
 
         master = Master.query.filter_by(user_id=user_id).first()
-        # master = '123' what to add? :(
+        master = encrypt_user_password(master.master)
 
         if master is None:
             return (

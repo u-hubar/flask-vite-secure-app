@@ -36,7 +36,7 @@ class User(Base):
             return None
 
         user = cls.query.filter_by(email=email).first()
-        if user is None or not verify_user_password(user.password, password):
+        if not user or not verify_user_password(user.password, password):
             return None
 
         return user
@@ -55,7 +55,7 @@ class Master(Base):
             return None
 
         master = cls.query.filter_by(user_id=user_id).first()
-        if master is None:
+        if not master:
             return False
 
         return True
@@ -66,7 +66,7 @@ class Master(Base):
             return None
 
         master = cls.query.filter_by(user_id=user_id).first()
-        if master is None or not verify_user_password(master.master, user_master):
+        if not master or not verify_user_password(master.master, user_master):
             return None
 
         return user_master
