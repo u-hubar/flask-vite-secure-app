@@ -189,7 +189,7 @@ def service(user_id):
         password = data["password"]
 
         master = Master.query.filter_by(user_id=user_id).first()
-        master = encrypt_user_password(master.master)
+        master = master.master
 
         if master is None:
             return (
