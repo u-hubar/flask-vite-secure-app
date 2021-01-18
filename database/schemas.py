@@ -1,5 +1,5 @@
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
-from database.db import User, Master, Service
+from database.db import User, Master, Service, UserLoginLogs, FailedLoginLogs
 
 
 class UserSchema(SQLAlchemyAutoSchema):
@@ -19,5 +19,19 @@ class MasterSchema(SQLAlchemyAutoSchema):
 class ServiceSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = Service
+        include_fk = True
+        load_instance = True
+
+
+class UserLoginLogsSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = UserLoginLogs
+        include_fk = True
+        load_instance = True
+
+
+class FailedLoginLogsSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = FailedLoginLogs
         include_fk = True
         load_instance = True

@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 
 def encrypt_user_password(
-    password, t=16, m=2 ** 15, p=2, hash_len=32, salt_len=16
+    password, t=16, m=2**17, p=4, hash_len=32, salt_len=16
 ):
     argon2Hasher = PasswordHasher(
         time_cost=t,
@@ -21,7 +21,7 @@ def encrypt_user_password(
 
 
 def verify_user_password(
-    hash, password, t=16, m=2 ** 15, p=2, hash_len=32, salt_len=16
+    hash, password, t=16, m=2**17, p=4, hash_len=32, salt_len=16
 ):
     argon2Hasher = PasswordHasher(
         time_cost=t,

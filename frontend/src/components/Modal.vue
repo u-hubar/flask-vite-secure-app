@@ -16,7 +16,7 @@
         <!--Title-->
         <div class="flex justify-between items-center pb-3">
           <p class="text-2xl font-bold" v-text="title" />
-          <div class="modal-close cursor-pointer z-50" @click="logMessage()">
+          <div class="modal-close cursor-pointer z-50" @click="closeModal()">
             <svg
               class="fill-current text-black"
               xmlns="http://www.w3.org/2000/svg"
@@ -50,14 +50,16 @@ export default defineComponent({
   props: {
     open: Boolean,
     title: String,
+    lock: Boolean
   },
   emits: ['update:open'],
   setup(props, { emit }) {
-    function logMessage() {
+    function closeModal() {
+      if (props.lock) return;
       emit("update:open", false);
     }
     return {
-      logMessage,
+      closeModal,
     };
   },
 });

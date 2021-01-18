@@ -1,6 +1,6 @@
 <template>
   <div class="flex justify-center items-center h-screen bg-gray-200 px-6">
-    <div class="p-6 max-w-sm w-full bg-white shadow-md rounded-md">
+    <div class="p-6 max-w-md w-full bg-white shadow-md rounded-md">
       <div class="flex justify-center items-center">
         <svg
           class="h-10 w-10"
@@ -40,10 +40,10 @@
             class="btn btn-link text-sm fontme text-indigo-700 hover:underline"
             >Register</router-link
           >
-
+          
           <span class="text-sm" v-if="counter && counter < 5" v-text="`You have ${5 - counter} tries left`"/>
           <span v-else>
-            <timer :deadline="time" @reset="timerHandler" />
+            <timer :deadline="time" @reset="resetTime" />
           </span>
         </div>
 
@@ -67,7 +67,7 @@ import { getTokens } from "../axios/requests";
 import { Credentials } from "../axios/requestTypes";
 import { useSession } from "../hooks/useSession";
 
-import { defineComponent, ref, reactive, watch, computed } from "vue";
+import { defineComponent, ref, reactive, watch, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import InputField from "../components/utils/InputField.vue";
 import Timer from "../components/utils/Timer.vue";
@@ -87,6 +87,10 @@ export default defineComponent({
 
     const tokens = useSession();
 
+    const isAuthenticated = computed(() => {
+      return Boolean(tokens.refresh.value.length);
+    });
+
     const timerReset = ref(false)
 
 
@@ -94,7 +98,7 @@ export default defineComponent({
       if (value === 5) time.value = Date.now() + 59000;
     })
 
-    function timerHandler(value: boolean) {
+    function resetTime(value: boolean) {
       counter.value = 0;
       time.value = 0;
       timerReset.value = true;
@@ -110,9 +114,13 @@ export default defineComponent({
         };
         router.push("/dashboard");
       } catch (err) {
-        console.log(`hello my error`)
+        counter.value += 1;
       }
     }
+
+    onMounted(async () => {
+      if (isAuthenticated.value) useRouter().push("/dashboard");
+    });
 
     return {
       loginFieldElements,
@@ -120,7 +128,7 @@ export default defineComponent({
       credentials,
       counter,
       time,
-      timerHandler,
+      resetTime,
       timerReset
     };
   },

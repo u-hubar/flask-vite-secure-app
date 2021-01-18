@@ -8,8 +8,10 @@ export interface Service {
   service: string;
   url: string;
   username: string;
+  password?: string;
 }
 
-export interface servicePassword {
+export interface ServicePassword {
+  id: number;
   password: string;
 }

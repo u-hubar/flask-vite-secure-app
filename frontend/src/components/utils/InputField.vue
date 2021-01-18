@@ -4,8 +4,9 @@
     <input
       :type="type"
       v-model="value"
-      class="form-input mt-1 block w-full px-1 outline-none ring-2 ring-blue-500 rounded-md focus:border-indigo-600"
+      class="form-input mt-1 block w-full px-3 outline-none ring-2 ring-blue-500 rounded-md focus:border-indigo-600"
       :class="error ? 'ring-red-500':'ring-blue-500'"
+      maxlength="32"
     />
     <slot></slot>
   </label>

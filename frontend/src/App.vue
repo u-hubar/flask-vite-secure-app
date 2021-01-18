@@ -20,7 +20,8 @@ export default defineComponent({
     );
 
     onMounted(() => {
-      const tokens = localStorage.getItem('password_manager_state');
+      const tokens = localStorage.getItem('pswd_man');
+      console.log('setting localStorage tokens as variables', tokens)
       if (!tokens) return;
       setTokens(JSON.parse(tokens))
     })

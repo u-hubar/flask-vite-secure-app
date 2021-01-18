@@ -1,11 +1,6 @@
 <template>
     <div class="text-center">
-    <p class="text-black text-sm" v-if="currentTime">
-      {{
-        currentTime
-          ? `You need to wait ${("0" + currentTime.seconds).slice(-2)} seconds`
-          : ""
-      }}
+    <p class="text-black text-sm" v-if="currentTime" v-text="message">
     </p>
   </div>
 </template>
@@ -32,6 +27,17 @@ export default defineComponent({
     setTimeout(this.countdown, 1);
   },
   emits: ['reset'],
+  computed: {
+    message() {
+      const { minutes, seconds } = this.currentTime;
+      let text = "You need to wait ";
+      if (minutes) text += `${minutes} minutes`
+      if (minutes && seconds) text += ' and '
+      if (seconds) text += `${seconds} seconds`
+
+      return this.currentTime ? text : '';
+    }
+  },
   methods: {
     countdown() {
       let t = this.deadline - Date.parse(new Date().toString());

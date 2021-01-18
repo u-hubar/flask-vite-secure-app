@@ -24,14 +24,11 @@ export const restricted = Axios.create({
 
 const addAccessToken = (config: AxiosRequestConfig) => {
   const session = useSession();
-  console.log(`access token: ${session.access.value}`, config.url)
-  return { ...config, headers: { Authorization: `Bearer ${session.access.value}` } };
+  const { access = ''} = JSON.parse(localStorage.getItem('pswd_man'))
+  return { ...config, headers: { Authorization: `Bearer ${session.access.value || access}` } };
 };
 
-export const interceptRequests = (config: AxiosRequestConfig) => {
-  const session = useSession();
-  return session.access.value ? addAccessToken(config) : config
-};
+export const interceptRequests = (config: AxiosRequestConfig) => addAccessToken(config);
 export const interceptRequestErrors = (error: AxiosError) => Promise.reject(error);
 
 export const interceptResponseErrors = async (error: AxiosError) => {
@@ -43,9 +40,10 @@ export const interceptResponseErrors = async (error: AxiosError) => {
   try {
     await extendSession();
     const session = useSession();
+    const { access = ''} = JSON.parse(localStorage.getItem('pswd_man'))
 
-    if (!session.access.value) return Promise.reject(error);
-    originalRequest.headers.Authorization = `Bearer ${session.access.value}`;
+    if (!session.access.value && !access) return Promise.reject(error);
+    originalRequest.headers['Authorization'] = `Bearer ${session.access.value}`;
   } catch (err) {
     resetTokens();
     Promise.reject(err);

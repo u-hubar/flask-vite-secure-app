@@ -41,7 +41,11 @@
           @input="checkFieldsInput('confirm')"
         />
 
-        <div class="mt-6">
+
+          <div class="mt-4 text-xs" :class="credentials.password.length > 7 && passwordFeedback.score === 4 ? 'text-green-500' : 'text-red-600'" v-if="Object.keys(passwordFeedback)" >
+            <span v-text="passwordFeedback.warning" />
+          </div>
+        <div :class="!Object.keys(passwordFeedback) ? 'mt-10' : ''" class="mt-6">
           <button
             type="submit"
             class="py-2 px-4 text-center disabled:bg-indigo-300 disabled:cursor-not-allowed bg-indigo-600 rounded-md w-full text-white text-sm hover:bg-indigo-500"
@@ -61,6 +65,7 @@ import { register } from '../axios/requests';
 import { Credentials } from '../axios/requestTypes';
 import { defineComponent, ref, reactive, computed } from "vue";
 import router from '../router';
+import zxcvbn from "zxcvbn";
 
 export default defineComponent({
   setup() {
@@ -70,6 +75,21 @@ export default defineComponent({
     })
 
     const passwordConfirm = ref(''); 
+
+    const passwordFeedback = computed(() => {
+      if (!credentials.password) return {}
+      const { feedback, score } = zxcvbn(credentials.password)
+      const obj = score < 4
+        ? {...feedback, score}
+        : {
+          score, warning: credentials.password.length < 7
+          ? 'Your password is too short'
+          : "Your password is strong"
+        };
+      if (credentials.password.length === 1) obj.warning = 'Your password is too short'
+      if (passwordConfirm.value && !passwordMatching.value) obj.warning = 'Passwords not matching'
+      return obj
+      })
 
     const fields = ref<String[]>([])
 
@@ -85,7 +105,7 @@ export default defineComponent({
     })
 
     const validate = computed(() =>
-      Object.values(credentials).every(value => value.length) && passwordMatching.value
+      Object.values(credentials).every(value => value.length) && passwordMatching.value && credentials.password.length > 8 && passwordFeedback.value.score > 2
     )
 
     async function handleRegister() {
@@ -100,7 +120,8 @@ export default defineComponent({
       checkFieldsInput,
       validate,
       handleRegister,
-      passwordConfirm
+      passwordConfirm,
+      passwordFeedback
     };
   },
 });

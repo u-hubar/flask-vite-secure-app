@@ -13,7 +13,7 @@
           </button>
 
           <button
-            @click="open = true"
+            @click="addNewService()"
             class="mt-3 px-6 py-3 bg-indigo-600 rounded-md text-white font-medium tracking-wide hover:bg-indigo-500"
           >
             Add new service
@@ -24,10 +24,27 @@
 
     <div class="mt-8"></div>
 
-    <modal v-model:open="open" :title="masterPassword ? 'Add service' : 'Enter master password'">
+    <modal
+      :lock="lock"
+      v-model:open="open"
+      :title="
+        masterPassword && action === 'add service'
+          ? 'Add service'
+          : 'Enter master password'
+      "
+    >
       <template v-if="open" #default>
-        <add-service v-model:open="open" v-if="masterPassword" />
-        <enter-master-password v-else v-model:masterPassword="masterPassword" />
+        <add-service
+          @sync="(service) => services.push(service)"
+          v-model:open="open"
+          v-if="masterPassword && action === 'add service'"
+        />
+        <enter-master-password
+          v-else
+          @lock="lock = true"
+          :action="action"
+          @success="handleMasterPassword"
+        />
       </template>
     </modal>
 
@@ -43,7 +60,8 @@
                   v-for="item in ['Service', 'URL', 'Username', 'Password']"
                   :key="item"
                   class="px-6 py-2 border-b border-gray-200 bg-gray-50 text-left text-xs leading-4 font-medium text-gray-500 uppercase tracking-wider"
-                v-text="item" />
+                  v-text="item"
+                />
               </tr>
             </thead>
 
@@ -80,14 +98,18 @@
 <script lang="ts">
 import AddService from "../components/modals/AddService.vue";
 import EnterMasterPassword from "../components/modals/EnterMasterPassword.vue";
-import Modal from "../components/Modal.vue"
+import Modal from "../components/Modal.vue";
 import ServicesRow from "../components/table/ServicesRow.vue";
 
 import { computed, defineComponent, onMounted, ref } from "vue";
-import { checkMaster, fetchServices } from "../axios/requests";
+import {
+  checkMaster,
+  fetchServices,
+  decryptPasswords,
+} from "../axios/requests";
 import { useRouter } from "vue-router";
 import { useSession } from "../hooks/useSession";
-import { Service } from "../axios/responseTypes"
+import { Service } from "../axios/responseTypes";
 
 export default defineComponent({
   components: {
@@ -97,10 +119,6 @@ export default defineComponent({
     ServicesRow,
   },
   setup() {
-   //  const register = () => {
-   //   const data = JSON.parse(JSON.stringify(newService.value));
-   // };
-
     const services = ref<Service[]>([]);
 
     const open = ref(false);
@@ -110,20 +128,53 @@ export default defineComponent({
       return Boolean(session.refresh.value.length);
     });
 
-    const masterPassword = ref('');
+    const masterPassword = ref("");
+    const action = ref("");
 
-    function showPasswords() {
-      if (masterPassword.value) () => {}
-      else open.value = true;
+    const lock = ref(false);
+
+    function openModal() {
+      if (lock.value) return;
+      open.value = true
     }
 
-    function handler(event: any) {
-      console.log('received', event)
+    async function showPasswords() {
+      console.log(
+        "showPasswords function, checking master password value",
+        masterPassword.value
+      );
+      if (masterPassword.value)
+        await decryptPasswords(masterPassword.value).then((password) => {
+          services.value = services.value.map((service) => ({
+            ...service,
+            password: password.find(({ id }) => id === service.id)?.["password"] || service.password || "",
+          }));
+        });
+      else {
+        action.value = "show passwords";
+        openModal();
+      }
+    }
+
+    function addNewService() {
+      action.value = "add service";
+      openModal();
+    }
+
+    async function handleMasterPassword(password) {
+      masterPassword.value = password;
+      if (action.value !== "show passwords") return;
+      open.value = false;
+      await showPasswords();
     }
 
     onMounted(async () => {
       if (!isAuthenticated.value) useRouter().push("/");
-      services.value = await fetchServices();
+      try {
+        services.value = await fetchServices();
+      } catch (err) {
+        console.log("Error");
+      }
     });
 
     return {
@@ -131,7 +182,10 @@ export default defineComponent({
       services,
       showPasswords,
       masterPassword,
-      handler
+      addNewService,
+      action,
+      handleMasterPassword,
+      lock,
     };
   },
 });

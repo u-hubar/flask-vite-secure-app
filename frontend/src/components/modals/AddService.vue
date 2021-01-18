@@ -33,7 +33,7 @@ import { serviceFieldElements } from "../../assets/data";
 import { addService } from "../../axios/requests";
 
 export default defineComponent({
-  emits: ["update:open"],
+  emits: ["sync"],
   setup(props, { emit }) {
     const confirmPassword = ref("");
     const service = reactive<NewService>({
@@ -52,9 +52,9 @@ export default defineComponent({
 
     async function addNewService() {
       console.log("adding new service", service);
-      await addService(service).then(() => {
-        emit("update:open", false);
-      });
+      const confirmed = await addService(service);
+      if (!confirmed) return;
+      emit("sync", service)
     }
 
     return {

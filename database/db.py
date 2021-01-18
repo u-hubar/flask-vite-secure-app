@@ -1,5 +1,6 @@
+import datetime
 from backend.encryption.password import verify_user_password
-from sqlalchemy import Column, ForeignKey, Integer, String, create_engine
+from sqlalchemy import Column, ForeignKey, Integer, String, create_engine, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, relationship, scoped_session, sessionmaker
 
@@ -19,6 +20,7 @@ class User(Base):
     password = Column(String(512), nullable=False)
     master = relationship("Master", backref=backref("users", uselist=False))
     services = relationship('Service', backref="users", lazy=False)
+    logs = relationship("UserLoginLogs", backref="users", lazy=False)
 
     def __init__(self, email=None, password=None):
         self.email = email
@@ -81,6 +83,27 @@ class Service(Base):
     url = Column(String(128), nullable=False)
     username = Column(String(50), nullable=False)
     password = Column(String(256), nullable=False)
+
+
+class UserLoginLogs(Base):
+    __tablename__ = 'user_login_logs'
+
+    datetime = Column(DateTime, default=datetime.datetime.utcnow)
+    id = Column(Integer, nullable=False, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_agent = Column(String(128), nullable=False)
+    user_ip = Column(String(32), nullable=False)
+
+
+class FailedLoginLogs(Base):
+    __tablename__ = 'failed_login_logs'
+
+    datetime = Column(DateTime, default=datetime.datetime.utcnow)
+    id = Column(Integer, nullable=False, primary_key=True)
+    email = Column(String(50))
+    password = Column(String(256))
+    user_agent = Column(String(128), nullable=False)
+    user_ip = Column(String(32), nullable=False)
 
 
 def init_db():

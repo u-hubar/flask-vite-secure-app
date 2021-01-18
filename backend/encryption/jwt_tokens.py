@@ -48,7 +48,7 @@ def token_required(f):
         expired_msg = {"message": "Expired token.", "authenticated": False}
 
         if not len(token):
-            return jsonify(invalid_msg), 401
+            return jsonify(invalid_msg), 403
 
         try:
             data = jwt.decode(
@@ -63,7 +63,7 @@ def token_required(f):
             return jsonify(expired_msg), 401
         except (jwt.InvalidTokenError, Exception) as e:
             print(e)
-            return jsonify(invalid_msg), 402
+            return jsonify(invalid_msg), 403
 
     return _verify
 

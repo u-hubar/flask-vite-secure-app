@@ -1,69 +1,69 @@
 import { unrestricted, restricted } from "./config";
 import { Credentials, NewService } from "./requestTypes";
-import { setTokens, useSession } from "../hooks/useSession";
-import { Tokens, Service, servicePassword } from "./responseTypes";
+import { setTokens, useSession, resetTokens } from "../hooks/useSession";
+import { Tokens, Service, ServicePassword } from "./responseTypes";
 
 export const register = async (payload: Credentials): Promise<void> => {
   try {
     await unrestricted.post("register", payload);
   } catch (err) {
-    if (err && err.response) return err.response.data;
     throw err;
   }
 };
 
 export const checkMaster = async (): Promise<boolean> => {
   try {
-    const { status } = await restricted.get("master");
-    return status === 200; 
+    const response = await restricted.get("master");
+    return response.status === 200;
   } catch (err) {
-    if (err && err.response) return false;
+    return false;
     throw err;
   }
 };
 
-export const sendMaster = async (master: string): Promise<void> => {
+export const sendMaster = async (master: string): Promise<boolean> => {
   try {
-    await restricted.post("master", { master });
+    const { status } = await restricted.post("master", { master })
+    console.log('status code', status)
+    return status >= 200 && status < 300
   } catch (err) {
-    if (err && err.response) return err.response.data;
+    return false;
     throw err;
   }
 };
 
-export const addService = async (payload: NewService): Promise<void> => {
+export const addService = async (payload: NewService): Promise<boolean> => {
   try {
-    await restricted.post("service", payload);
+    const { status} = await restricted.post("service", payload);
+    return status >= 200 && status < 300
   } catch (err) {
-      if (err && err.response) return err.response.data;
-      throw err;
-    }
+    throw err;
+  }
 };
 
 export const fetchServices = async (): Promise<Service[]> => {
   try {
-    await restricted.get("service");
+    const { data } = await restricted.get("service");
+    return data
   } catch (err) {
-    if (err && err.reponse) return err.response.data;
     throw err;
   }
 };
 
-export const decryptPasswords = async (master: string): Promise<servicePassword[]> => {
+export const decryptPasswords = async (master: string): Promise<ServicePassword[]> => {
   try {
-    await restricted.post("passwords", { master });
+    const { data } = await restricted.post("passwords", { master });
+    return data;
   } catch (err) {
-    if (err && err.response) return err.response.data;
     throw err;
   }
 };
 
-export const getTokens = async (payload: Credentials): Promise<Tokens> => {
+export const getTokens = async (payload: Credentials): Promise<void> => {
   try {
     const { data = {} } = await unrestricted.post("login", payload);
     setTokens(data);
   } catch (err) {
-    if (err && err.response) return err.response.data;
     throw err;
   }
 };
@@ -78,7 +78,7 @@ export const refreshToken = async (): Promise<string> => {
     setTokens({ access, refresh });
     return access;
   } catch (err) {
-    if (err && err.response) return err.response.data;
+    resetTokens();
     throw err;
   }
 };

@@ -1,11 +1,8 @@
-from database.db import Master, Service, User, db_session
+from database.db import Master, Service, User, db_session, FailedLoginLogs, UserLoginLogs
 from database.schemas import ServiceSchema
 from flask import Flask, jsonify, request
 from flask_script import Manager
 from sqlalchemy.exc import IntegrityError
-# import pandas as pd
-# import swifter
-# import json
 
 from backend.encryption.jwt_tokens import (
     decode_token,
@@ -18,7 +15,6 @@ from backend.encryption.password import (
 )
 
 app = Flask(__name__)
-
 manager = Manager(app)
 
 
@@ -67,11 +63,23 @@ def login():
     data = request.get_json()
     user = User.authenticate(**data)
 
+    user_agent = request.headers.get("User-Agent", None)
+    user_ip = request.remote_addr
+
     if user is None:
+        email = data.get("email", None)
+        password = data.get("password", None)
+        failed_login = FailedLoginLogs(email=email, password=password, user_agent=user_agent, user_ip=user_ip)
+        db_session.add(failed_login)
+        db_session.commit()
         return (
             jsonify({"status": "failed", "message": "Failed getting user"}),
-            401,
+            403,
         )
+
+    user_login = UserLoginLogs(user_id=user.id, user_agent=user_agent, user_ip=user_ip)
+    db_session.add(user_login)
+    db_session.commit()
 
     access_token = generate_token(identity=user.email, seconds=15)
     refresh_token = generate_token(identity=user.email, seconds=86400)  # 24h
@@ -140,7 +148,7 @@ def master_password(user_id):
                     jsonify(
                         {"status": "failed", "message": "Invalid master."}
                     ),
-                    401,
+                    403,
                 )
 
             return (
@@ -174,7 +182,7 @@ def master_password(user_id):
 def service(user_id):
     if request.method == "GET":
         service_schema = ServiceSchema(
-            many=True, only=["service", "url", "username"]
+            many=True, only=["id", "service", "url", "username"]
         )
         services = Service.query.filter_by(user_id=user_id).all()
         services_dump = service_schema.dump(services)
@@ -194,7 +202,7 @@ def service(user_id):
         if master is None:
             return (
                 jsonify({"status": "failed", "message": "Invalid master."}),
-                401,
+                403,
             )
 
         password = encrypt_service_password(
@@ -222,35 +230,31 @@ def service(user_id):
 @app.route('/api/passwords', methods=["POST"])
 @token_required
 def show_passwords(user_id):
-    data = request.get_json()
-
-    master = encrypt_user_password(data.get("master"))
-    master = Master.validate(user=user_id, master=master)
+    master = Master.query.filter_by(user_id=user_id).first()
+    master = master.master
 
     if master is None:
         return (
             jsonify({"status": "failed", "message": "Invalid master."}),
-            401,
+            403,
         )
 
-    service_schema = ServiceSchema(
-        many=True, only=["service", "username", "password"]
-    )
     passwords = Service.query.filter_by(user_id=user_id).all()
-    passwords_dump = service_schema.dump(passwords)
 
-    # passwords_df = pd.DataFrame(passwords_dump)
-    # decrypted_passwords = passwords_df.swifter.apply(
-    #     lambda x: decrypt_service_password(master, x["password"], x["service"]+x["username"])
-    # )
+    if not passwords:
+        return (
+            jsonify({"status": "failed", "message": "No passwords."}),
+            404,
+        )
 
-    # passwords_json = decrypted_passwords.to_json(orient="records")
-    # parsed_passwords = json.loads(passwords_json)
-    # response = json.dumps(parsed_passwords, indent=4)
+    passwords_dump = []
+    for pswd in passwords:
+        password = decrypt_service_password(
+            master, pswd.password, pswd.service + pswd.username
+        )
+        passwords_dump.append({'id': pswd.id, 'password': password})
 
-    # return response, 200
-
-    return passwords_dump, 200
+    return jsonify(passwords_dump), 200
 
 
 if __name__ == "__main__":

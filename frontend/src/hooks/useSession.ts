@@ -16,7 +16,8 @@ export function useSession() {
 export async function setTokens({ access, refresh }: Tokens) {
   state.access = access;
   state.refresh = refresh;
-  localStorage.setItem('password_manager_state', JSON.stringify(state))
+  console.log('saved access and refresh tokens', state)
+  localStorage.setItem('pswd_man', JSON.stringify(state))
 }
 
 export async function extendSession() {
@@ -25,12 +26,12 @@ export async function extendSession() {
 
 export function resetAccessToken() {
   state.access = '';
-  localStorage.setItem('password_manager_state', JSON.stringify(state))
+  localStorage.setItem('pswd_man', JSON.stringify(state))
 }
 
 export function resetTokens() {
   state.access = '';
   state.refresh = '';
-  localStorage.setItem('password_manager_state', '')
+  localStorage.setItem('pswd_man', '')
   localStorage.clear();
 }
