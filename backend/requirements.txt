@@ -1,0 +1,8 @@
+Flask
+requests==2.7.0
+SQLAlchemy
+marshmallow-sqlalchemy
+Flask-Script
+PyJWT
+cryptography
+argon2-cffi

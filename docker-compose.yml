@@ -1,0 +1,60 @@
+version: "3.1"
+
+services:
+  frontend:
+    container_name: vue3-vite
+    build: ./frontend
+    restart: unless-stopped
+    expose:
+      - 3000
+    volumes: 
+     - ./frontend:/var/frontend
+    networks:
+      - backend-net
+    logging:
+      driver: "json-file"
+      options:
+          max-file: "1"
+          max-size: "100m"
+
+  backend:
+    container_name: flask
+    build:
+      context: ./backend
+    command: "python3 app.py runserver --host 0.0.0.0"
+    restart: unless-stopped
+    volumes:
+      - ./backend:/var/backend
+      - ./database:/var/database
+    expose:
+      - 5000
+    networks:
+      - backend-net
+    logging:
+      driver: "json-file"
+      options:
+          max-file: "1"
+          max-size: "100m"
+
+  webserver:
+    container_name: nginx
+    build: ./nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/logs:/var/log/nginx:rw
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - backend-net
+    logging:
+      driver: "json-file"
+      options:
+          max-file: "1"
+          max-size: "100m"
+
+# Networks
+networks:
+  backend-net:
