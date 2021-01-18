@@ -6,8 +6,3 @@ Flask-Script
 PyJWT
 cryptography
 argon2-cffi
-# jedi==0.17.2
-# ipython==7.18.1
-# numpy
-# pandas==1.1.5
-# swifter

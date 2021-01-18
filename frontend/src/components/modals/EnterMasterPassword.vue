@@ -26,8 +26,7 @@
       <span v-else>
         <timer :deadline="time" @reset="resetTime" />
       </span>
-
-      <div class="mt-4 text-xs" :class="masterPassword.length > 7 && passwordFeedback.score === 4 ? 'text-green-500' : 'text-red-600'" v-if="Object.keys(passwordFeedback) && masterPassword.length && !hasMaster" >
+      <div class="mt-4 text-xs" :class="masterPassword.length > 7 && passwordFeedback.score === 4 && passwordMatching ? 'text-green-500' : 'text-red-600'" v-if="Object.keys(passwordFeedback) && masterPassword.length && !hasMaster" >
         <span v-text="passwordFeedback.warning" />
       </div>
       <button
@@ -96,6 +95,10 @@ export default defineComponent({
       hasMaster.value = await checkMaster();
     });
 
+    const passwordMatching = computed(() => {
+      return masterPassword.value === confirmPassword.value
+    })
+
     const validate = computed(() => {
       const pass = masterPassword.value;
       const pass2 = confirmPassword.value;
@@ -113,6 +116,7 @@ export default defineComponent({
       time,
       resetTime,
       passwordFeedback,
+      passwordMatching
     };
   },
 });

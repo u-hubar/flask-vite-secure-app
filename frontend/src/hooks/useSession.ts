@@ -16,7 +16,6 @@ export function useSession() {
 export async function setTokens({ access, refresh }: Tokens) {
   state.access = access;
   state.refresh = refresh;
-  console.log('saved access and refresh tokens', state)
   localStorage.setItem('pswd_man', JSON.stringify(state))
 }
 

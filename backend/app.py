@@ -1,6 +1,13 @@
-from database.db import Master, Service, User, db_session, FailedLoginLogs, UserLoginLogs
-from database.schemas import ServiceSchema
-from flask import Flask, jsonify, request
+from database.db import (
+    Master,
+    Service,
+    User,
+    db_session,
+    FailedLoginLogs,
+    UserLoginLogs,
+)
+from database.schemas import ServiceSchema, UserLoginLogsSchema
+from flask import Flask, json, jsonify, request
 from flask_script import Manager
 from sqlalchemy.exc import IntegrityError
 
@@ -10,7 +17,8 @@ from backend.encryption.jwt_tokens import (
     token_required,
 )
 from backend.encryption.password import (
-    decrypt_service_password, encrypt_user_password,
+    decrypt_service_password,
+    encrypt_user_password,
     encrypt_service_password,
 )
 
@@ -69,7 +77,12 @@ def login():
     if user is None:
         email = data.get("email", None)
         password = data.get("password", None)
-        failed_login = FailedLoginLogs(email=email, password=password, user_agent=user_agent, user_ip=user_ip)
+        failed_login = FailedLoginLogs(
+            email=email,
+            password=password,
+            user_agent=user_agent,
+            user_ip=user_ip,
+        )
         db_session.add(failed_login)
         db_session.commit()
         return (
@@ -77,7 +90,9 @@ def login():
             403,
         )
 
-    user_login = UserLoginLogs(user_id=user.id, user_agent=user_agent, user_ip=user_ip)
+    user_login = UserLoginLogs(
+        user_id=user.id, user_agent=user_agent, user_ip=user_ip
+    )
     db_session.add(user_login)
     db_session.commit()
 
@@ -227,7 +242,7 @@ def service(user_id):
         )
 
 
-@app.route('/api/passwords', methods=["POST"])
+@app.route("/api/passwords", methods=["POST"])
 @token_required
 def show_passwords(user_id):
     master = Master.query.filter_by(user_id=user_id).first()
@@ -252,9 +267,18 @@ def show_passwords(user_id):
         password = decrypt_service_password(
             master, pswd.password, pswd.service + pswd.username
         )
-        passwords_dump.append({'id': pswd.id, 'password': password})
+        passwords_dump.append({"id": pswd.id, "password": password})
 
     return jsonify(passwords_dump), 200
+
+
+@app.route("/api/logs", methods=["GET"])
+@token_required
+def get_logs(user_id):
+    logs_schema = UserLoginLogsSchema(many=True)
+    logs = UserLoginLogs.query.filter_by(user_id=user_id).all()
+    logs_dump = logs_schema.dump(logs)
+    return jsonify(logs_dump), 200
 
 
 if __name__ == "__main__":

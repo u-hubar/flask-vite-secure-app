@@ -1,7 +1,7 @@
 import { unrestricted, restricted } from "./config";
 import { Credentials, NewService } from "./requestTypes";
 import { setTokens, useSession, resetTokens } from "../hooks/useSession";
-import { Tokens, Service, ServicePassword } from "./responseTypes";
+import { Service, ServicePassword, Logs } from "./responseTypes";
 
 export const register = async (payload: Credentials): Promise<void> => {
   try {
@@ -17,17 +17,23 @@ export const checkMaster = async (): Promise<boolean> => {
     return response.status === 200;
   } catch (err) {
     return false;
-    throw err;
   }
 };
 
 export const sendMaster = async (master: string): Promise<boolean> => {
   try {
     const { status } = await restricted.post("master", { master })
-    console.log('status code', status)
     return status >= 200 && status < 300
   } catch (err) {
     return false;
+  }
+};
+
+export const fetchLogs = async (): Promise<Logs[]> => {
+  try {
+    const { data } = await restricted.get("logs");
+    return data
+  } catch (err) {
     throw err;
   }
 };

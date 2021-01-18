@@ -51,7 +51,6 @@ export default defineComponent({
     });
 
     async function addNewService() {
-      console.log("adding new service", service);
       const confirmed = await addService(service);
       if (!confirmed) return;
       emit("sync", service)

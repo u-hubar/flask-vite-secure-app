@@ -35,7 +35,7 @@
     >
       <template v-if="open" #default>
         <add-service
-          @sync="(service) => services.push(service)"
+          @sync="(service) => pushService(service)"
           v-model:open="open"
           v-if="masterPassword && action === 'add service'"
         />
@@ -121,6 +121,11 @@ export default defineComponent({
   setup() {
     const services = ref<Service[]>([]);
 
+    function pushService(service) {
+      services.value.push(service)
+      open.value = false
+    }
+
     const open = ref(false);
 
     const isAuthenticated = computed(() => {
@@ -139,10 +144,6 @@ export default defineComponent({
     }
 
     async function showPasswords() {
-      console.log(
-        "showPasswords function, checking master password value",
-        masterPassword.value
-      );
       if (masterPassword.value)
         await decryptPasswords(masterPassword.value).then((password) => {
           services.value = services.value.map((service) => ({
@@ -186,6 +187,7 @@ export default defineComponent({
       action,
       handleMasterPassword,
       lock,
+      pushService,
     };
   },
 });

@@ -30,9 +30,9 @@
           v-for="field in loginFieldElements"
           :key="field"
           :input="field"
-          :error="fields.includes(key) && !credentials[field.key]"
+          :error="fields.includes(field.key) && !credentials[field.key]"
           v-model:value="credentials[field.key]"
-          @input="checkFieldsInput(key)"
+          @input="checkFieldsInput(field.key)"
         />
         <input-field
           :input="{type: 'password', label: 'Confirm password' }"
@@ -42,7 +42,7 @@
         />
 
 
-          <div class="mt-4 text-xs" :class="credentials.password.length > 7 && passwordFeedback.score === 4 ? 'text-green-500' : 'text-red-600'" v-if="Object.keys(passwordFeedback)" >
+          <div class="mt-4 text-xs" :class="credentials.password.length > 7 && passwordFeedback.score === 4 && passwordMatching ? 'text-green-500' : 'text-red-600'" v-if="Object.keys(passwordFeedback)" >
             <span v-text="passwordFeedback.warning" />
           </div>
         <div :class="!Object.keys(passwordFeedback) ? 'mt-10' : ''" class="mt-6">
@@ -121,7 +121,8 @@ export default defineComponent({
       validate,
       handleRegister,
       passwordConfirm,
-      passwordFeedback
+      passwordFeedback,
+      passwordMatching
     };
   },
 });

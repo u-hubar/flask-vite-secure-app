@@ -3,6 +3,12 @@ export interface Tokens {
   refresh: string;
 }
 
+export interface Logs {
+  datetime: string,
+  user_agent: string,
+  user_ip: string,
+}
+
 export interface Service {
   id: number,
   service: string;
